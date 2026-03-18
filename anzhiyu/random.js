@@ -1,3 +1,3 @@
-var posts=["2026/03/11/新文章-md/","2026/03/10/hello-world/"];function toRandomPost(){
+var posts=["2026/03/18/Windows/","2026/03/10/hello-world/","2026/03/18/Linux/","2026/03/11/YUM源软件仓库/"];function toRandomPost(){
     pjax.loadUrl('/'+posts[Math.floor(Math.random() * posts.length)]);
   };
