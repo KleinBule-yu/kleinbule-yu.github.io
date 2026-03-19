@@ -1,34 +1,37 @@
-/* 1. 让所有文章的标题自动适配深浅色模式 */
+/* ============================================================
+   1. 大标题适配
+   ============================================================ */
 #page-header #post-info .post-title, 
 .post-title {
     color: var(--font-color) !important;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.1) !important; /* 增加一点微弱阴影，白底也清晰 */
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.15) !important;
 }
 
-/* 2. 解决你之前提到的所有自定义 <p> 标签颜色问题 */
-/* 强制让手动写的黑色字体在暗黑模式下变白 */
-[data-theme="dark"] p[style*="color: black"],
-[data-theme="dark"] p[style*="color: #000"] {
-    color: var(--font-color) !important;
-}
-
-/* 1. 强制显示文章页的元数据（日期、位置等） */
-#post-info .post-meta-date, 
-#post-info .post-meta-separator, 
+/* ============================================================
+   2. 元数据适配
+   ============================================================ */
+/* 针对所有模式：强制不透明，取消滤镜 */
+#post-info .post-meta-date time,
 #post-info .anzhiyu-post-location,
-#post-info i {
-    color: var(--font-color) !important; /* 使用主字体颜色，确保黑白模式都清晰 */
-    opacity: 0.9 !important;            /* 提高透明度，防止颜色太淡 */
+#post-info .post-meta-separator,
+#post-info i,
+#post-info .post-meta-label {
+    color: var(--font-color) !important;
+    opacity: 1 !important;
+    filter: none !important;
+    -webkit-filter: none !important;
 }
 
-/* 2. 针对白色模式下的特殊优化 */
-[data-theme="light"] #post-info .post-meta-date,
-[data-theme="light"] #post-info .anzhiyu-post-location {
-    color: #333 !important;             /* 在纯白背景下强制使用深灰色 */
+/* 浅色模式补丁：强制纯黑 */
+[data-theme="light"] #post-info .post-meta-date time,
+[data-theme="light"] #post-info .anzhiyu-post-location,
+[data-theme="light"] #post-info i {
+    color: #000000 !important;
 }
 
-/* 3. 针对暗黑模式下的特殊优化 */
-[data-theme="dark"] #post-info .post-meta-date,
-[data-theme="dark"] #post-info .anzhiyu-post-location {
-    color: #eee !important;             /* 在深色背景下强制使用亮白色 */
+/* 深色模式补丁：强制亮白 */
+[data-theme="dark"] #post-info .post-meta-date time,
+[data-theme="dark"] #post-info .anzhiyu-post-location,
+[data-theme="dark"] #post-info i {
+    color: #ffffff !important;
 }
