@@ -1,0 +1,13 @@
+/* 1. 让所有文章的标题自动适配深浅色模式 */
+#page-header #post-info .post-title, 
+.post-title {
+    color: var(--font-color) !important;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1) !important; /* 增加一点微弱阴影，白底也清晰 */
+}
+
+/* 2. 解决你之前提到的所有自定义 <p> 标签颜色问题 */
+/* 强制让手动写的黑色字体在暗黑模式下变白 */
+[data-theme="dark"] p[style*="color: black"],
+[data-theme="dark"] p[style*="color: #000"] {
+    color: var(--font-color) !important;
+}
