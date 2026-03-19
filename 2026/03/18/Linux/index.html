@@ -189,7 +189,39 @@
         }
       }
       detectApple()
-    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.1"></head><body data-type="anzhiyu"><div id="web_bg"></div><div id="an_music_bg"></div><div id="loading-box" onclick="document.getElementById(&quot;loading-box&quot;).classList.add(&quot;loaded&quot;)"><div class="loading-bg"><img class="loading-img nolazyload" alt="加载头像" src="https://npm.elemecdn.com/anzhiyu-blog-static@1.0.4/img/avatar.jpg"/><div class="loading-image-dot"></div></div></div><script>const preloader = {
+    })(window)</script><style>
+  /* 给文章页顶部的标题区域增加一个半透明背板（毛玻璃效果） */
+  #post-info {
+    background: rgba(0, 0, 0, 0.2); /* 默认半透明黑 */
+    padding: 25px !important;       /* 增加间距 */
+    border-radius: 15px;            /* 圆角 */
+    backdrop-filter: blur(10px);    /* 毛玻璃 */
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;            /* 文字居中对齐，更美观 */
+  }
+
+  /* 浅色模式补丁：背景深一点，让白色文字跳出来 */
+  [data-theme="light"] #post-info {
+    background: rgba(0, 0, 0, 0.45) !important;
+  }
+
+  /* 强制标题和元数据（日期、冰岛）在背板上显示为纯白色 */
+  #post-info .post-title,
+  #post-info .post-meta-date,
+  #post-info .post-meta-date time,
+  #post-info .anzhiyu-post-location,
+  #post-info .post-meta-separator,
+  #post-info i {
+    color: #ffffff !important;
+    opacity: 1 !important;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3) !important;
+  }
+</style>
+<meta name="generator" content="Hexo 8.1.1"></head><body data-type="anzhiyu"><div id="web_bg"></div><div id="an_music_bg"></div><div id="loading-box" onclick="document.getElementById(&quot;loading-box&quot;).classList.add(&quot;loaded&quot;)"><div class="loading-bg"><img class="loading-img nolazyload" alt="加载头像" src="https://npm.elemecdn.com/anzhiyu-blog-static@1.0.4/img/avatar.jpg"/><div class="loading-image-dot"></div></div></div><script>const preloader = {
   endLoading: () => {
     document.getElementById('loading-box').classList.add("loaded");
   },
