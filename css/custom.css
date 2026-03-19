@@ -12,23 +12,23 @@
     color: var(--font-color) !important;
 }
 
-/* 1. 强制让文章元数据（日期、字数、地点等）的文字颜色自适应 */
-.post-meta-items, 
-.post-meta-date,
-.post-meta-label,
-.post-meta-separator {
-    color: var(--font-color) !important;
+/* 1. 强制显示文章页的元数据（日期、位置等） */
+#post-info .post-meta-date, 
+#post-info .post-meta-separator, 
+#post-info .anzhiyu-post-location,
+#post-info i {
+    color: var(--font-color) !important; /* 使用主字体颜色，确保黑白模式都清晰 */
+    opacity: 0.9 !important;            /* 提高透明度，防止颜色太淡 */
 }
 
-/* 2. 移除你截图里显示的那些深蓝色背景块（如果你不喜欢那个背景色） */
-.post-meta-items > span,
-.post-meta-date > span {
-    background: transparent !important; /* 让背景透明，直接显示大背景颜色 */
-    padding: 0 4px !important;
+/* 2. 针对白色模式下的特殊优化 */
+[data-theme="light"] #post-info .post-meta-date,
+[data-theme="light"] #post-info .anzhiyu-post-location {
+    color: #333 !important;             /* 在纯白背景下强制使用深灰色 */
 }
 
-/* 3. 针对地点（冰岛）图标和文字的修复 */
-.post-meta-position,
-.anzhiyu-icon-location-dot {
-    color: var(--font-color) !important;
+/* 3. 针对暗黑模式下的特殊优化 */
+[data-theme="dark"] #post-info .post-meta-date,
+[data-theme="dark"] #post-info .anzhiyu-post-location {
+    color: #eee !important;             /* 在深色背景下强制使用亮白色 */
 }
