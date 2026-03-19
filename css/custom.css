@@ -11,3 +11,24 @@
 [data-theme="dark"] p[style*="color: #000"] {
     color: var(--font-color) !important;
 }
+
+/* 1. 强制让文章元数据（日期、字数、地点等）的文字颜色自适应 */
+.post-meta-items, 
+.post-meta-date,
+.post-meta-label,
+.post-meta-separator {
+    color: var(--font-color) !important;
+}
+
+/* 2. 移除你截图里显示的那些深蓝色背景块（如果你不喜欢那个背景色） */
+.post-meta-items > span,
+.post-meta-date > span {
+    background: transparent !important; /* 让背景透明，直接显示大背景颜色 */
+    padding: 0 4px !important;
+}
+
+/* 3. 针对地点（冰岛）图标和文字的修复 */
+.post-meta-position,
+.anzhiyu-icon-location-dot {
+    color: var(--font-color) !important;
+}
