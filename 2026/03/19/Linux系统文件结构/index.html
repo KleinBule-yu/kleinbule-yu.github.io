@@ -631,7 +631,99 @@ queueMicrotask(() => {
     window.loadOtherComment = loadGiscus
   }
 })()</script><input type="hidden" name="page-type" id="page-type" value="post"></div><script>var visitorMail = "";
-</script><script async data-pjax src="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/waterfall/waterfall.js"></script><script src="https://cdn.cbd.int/qrcodejs@1.0.0/qrcode.min.js"></script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.1.9/icon/ali_iconfont_css.css"><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/aplayer/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.cbd.int/anzhiyu-blog-static@1.0.1/js/APlayer.min.js"></script><script src="https://cdn.cbd.int/hexo-anzhiyu-music@1.0.1/assets/js/Meting2.min.js"></script><script src="https://cdn.cbd.int/pjax@0.2.8/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+</script><script async data-pjax src="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/waterfall/waterfall.js"></script><script src="https://cdn.cbd.int/qrcodejs@1.0.0/qrcode.min.js"></script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.1.9/icon/ali_iconfont_css.css"><script src="/js/oml2d.js"></script><script>
+  (function() {
+    const myQuotes = [
+      '变态！', '笨蛋！', '干嘛呢你，快把手拿开~~', '你看我的主人了吗？QAQ',
+      '笨蛋笨蛋笨蛋！', '萝莉控是什么呀？', '喵喵喵~', '干嘛动我呀！小心我飞过去扎你！',
+      '110吗，这里有个变态一直在摸我(⋟﹏⋞)', '再摸的话我可要报警了！｛●﹏●｝',
+      '你看到我的包了吗？', '我才不是因为你摸我感觉舒服呢~', '是...是不小心碰到了吧',
+      '鼠...鼠标放错地方了！', '你要干嘛呀？', '怕怕(/≧▽≦)/',
+      '这样的话，只能使用武力了！', '我要生气了哦', '不要动手动脚的！'
+    ];
+    const hiddenQuotes = ['躲猫猫结束了', '出来了，别藏了', '鼠鼠都在哪呢？'];
+    
+    let hideTimer = null;
+    let isLock = false;
+    let lastIndex = -1;
+    let hasLeft = false;
+
+    function setupLive2D() {
+      if (typeof OML2D === 'undefined') {
+        console.error('OML2D 库未加载成功');
+        return;
+      }
+
+      const oml2d = OML2D.loadOml2d({
+        dockedPosition: 'right',
+        tips: { enable: true, welcomeTips: { enable: true } },
+        models: [{
+          path: '/live2d_models/maixiaowen/maixiaowen.model3.json',
+          scale: 0.08,
+          position: [65, 150],
+          stageStyle: { width: 300, height: 400 }
+        }]
+      });
+
+      const forceShowText = (text) => {
+        const tipsElement = document.querySelector('#oml2d-tips');
+        if (!tipsElement) return;
+        isLock = true;
+        if (hideTimer) clearTimeout(hideTimer);
+        tipsElement.innerText = text;
+        tipsElement.style.setProperty('display', 'block', 'important');
+        tipsElement.style.setProperty('opacity', '1', 'important');
+        tipsElement.style.setProperty('visibility', 'visible', 'important');
+        hideTimer = setTimeout(() => {
+          tipsElement.style.setProperty('opacity', '0', 'important');
+          isLock = false;
+        }, 4000);
+      };
+
+      window.addEventListener('mousedown', function(e) {
+        const stage = document.querySelector('#oml2d-stage');
+        if (!stage) return;
+        const rect = stage.getBoundingClientRect();
+        if (e.clientX >= rect.left && e.clientX <= rect.right &&
+            e.clientY >= rect.top && e.clientY <= rect.bottom) {
+          let newIndex;
+          do { newIndex = Math.floor(Math.random() * myQuotes.length); } while (newIndex === lastIndex);
+          lastIndex = newIndex;
+          forceShowText(myQuotes[newIndex]);
+          if (oml2d && oml2d.model && oml2d.model.executeMotion) {
+              oml2d.model.executeMotion('TapBody', Math.floor(Math.random() * 3));
+          }
+        }
+      }, true);
+
+      const checkVisibility = () => {
+        if (document.hidden) { hasLeft = true; } 
+        else if (hasLeft) {
+          hasLeft = false;
+          setTimeout(() => forceShowText(hiddenQuotes[Math.floor(Math.random() * hiddenQuotes.length)]), 200);
+        }
+      };
+      document.addEventListener('visibilitychange', checkVisibility);
+      window.addEventListener('focus', checkVisibility);
+
+      const styleId = 'oml2d-custom-fix';
+      if (!document.getElementById(styleId)) {
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.innerHTML = '#oml2d-tips { transition: opacity 0.2s ease !important; z-index: 2147483647 !important; }';
+        document.head.appendChild(style);
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupLive2D);
+    } else {
+      setupLive2D();
+    }
+    document.addEventListener('pjax:complete', setupLive2D);
+  })();
+</script>
+<link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/aplayer/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.cbd.int/anzhiyu-blog-static@1.0.1/js/APlayer.min.js"></script><script src="https://cdn.cbd.int/hexo-anzhiyu-music@1.0.1/assets/js/Meting2.min.js"></script><script src="https://cdn.cbd.int/pjax@0.2.8/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
 var pjax = new Pjax({
   elements: 'a:not([target="_blank"])',
   selectors: pjaxSelectors,
