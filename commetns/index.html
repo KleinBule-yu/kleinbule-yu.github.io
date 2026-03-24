@@ -322,7 +322,7 @@ queueMicrotask(() => {
       'data-reactions-enabled': '1',
       crossorigin: 'anonymous',
       async: true
-    },{"data-lang":"zh-CN","data-mapping":null,"data-category":null,"data-input-position":null})
+    },null)
 
     const ele = document.createElement('script')
     for (let key in config) {
@@ -347,8 +347,8 @@ queueMicrotask(() => {
 
   anzhiyu.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
 
-  if ('Giscus' === 'Giscus' || !true) {
-    if (true) anzhiyu.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+  if ('Giscus' === 'Giscus' || !false) {
+    if (false) anzhiyu.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
     else loadGiscus()
   } else {
     window.loadOtherComment = loadGiscus
