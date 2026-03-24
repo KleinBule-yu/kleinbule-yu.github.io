@@ -1,0 +1,37 @@
+/* ============================================================
+   1. 大标题适配
+   ============================================================ */
+#page-header #post-info .post-title, 
+.post-title {
+    color: var(--font-color) !important;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.15) !important;
+}
+
+/* ============================================================
+   2. 元数据适配
+   ============================================================ */
+/* 针对所有模式：强制不透明，取消滤镜 */
+#post-info .post-meta-date time,
+#post-info .anzhiyu-post-location,
+#post-info .post-meta-separator,
+#post-info i,
+#post-info .post-meta-label {
+    color: var(--font-color) !important;
+    opacity: 1 !important;
+    filter: none !important;
+    -webkit-filter: none !important;
+}
+
+/* 浅色模式补丁：强制纯黑 */
+[data-theme="light"] #post-info .post-meta-date time,
+[data-theme="light"] #post-info .anzhiyu-post-location,
+[data-theme="light"] #post-info i {
+    color: #000000 !important;
+}
+
+/* 深色模式补丁：强制亮白 */
+[data-theme="dark"] #post-info .post-meta-date time,
+[data-theme="dark"] #post-info .anzhiyu-post-location,
+[data-theme="dark"] #post-info i {
+    color: #ffffff !important;
+}
