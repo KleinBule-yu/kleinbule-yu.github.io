@@ -613,6 +613,15 @@ queueMicrotask(() => {
       }, 3000);
     }
 
+    // --- 新增：监听标签页切换 ---
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        // 当用户回到页面时触发
+        const targetText = tabQuotes[Math.floor(Math.random() * tabQuotes.length)];
+        playAction('happy', targetText);
+      }
+    });
+
     function bindInteractions() {
       const instance = window.myOmlInstance || window.OML2D?.instance;
       if (instance && instance.models) {

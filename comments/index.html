@@ -60,7 +60,7 @@
   isHome: false,
   isHighlightShrink: false,
   isToc: false,
-  postUpdate: '2026-03-25 14:57:59',
+  postUpdate: '2026-03-25 14:59:23',
   postMainColor: '',
 }</script><noscript><style type="text/css">
   #nav {
@@ -519,6 +519,15 @@ queueMicrotask(() => {
         console.log("✅ 麦晓雯已复位");
       }, 3000);
     }
+
+    // --- 新增：监听标签页切换 ---
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        // 当用户回到页面时触发
+        const targetText = tabQuotes[Math.floor(Math.random() * tabQuotes.length)];
+        playAction('happy', targetText);
+      }
+    });
 
     function bindInteractions() {
       const instance = window.myOmlInstance || window.OML2D?.instance;
