@@ -331,6 +331,9 @@ queueMicrotask(() => {
     ];
     const hoverQuotes = ['快看，有鼠鼠滑过来了！', '你是想和我玩吗？', '盯着我看干嘛呀(〃▽〃)', '嘿咻！被我抓到了吧！'];
 
+    // --- 新增：切换标签页台词 ---
+    const tabQuotes = ['鼠鼠都在哪呢？', '出来啦，别藏啦', '躲猫猫结束了'];
+
     function showBubbleText(text, duration = 3000) {
       const tips = document.querySelector('#oml2d-tips');
       if (!tips) return;
