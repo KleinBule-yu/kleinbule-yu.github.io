@@ -441,7 +441,12 @@ queueMicrotask(() => {
     let modelWrapper = null;
     let expressionTimer = null;
     let hideTimer = null;
-    let quickUpdate = null; // 把高频刷新也提出来，方便全局杀掉
+    let quickUpdate = null;
+
+    // ================= 配置区 =================
+    const BUBBLE_TIME = 4000;  // 气泡文字停留时间 (4秒)
+    const RESET_TIME = 3000;   // 表情动作复位时间 (3秒)
+    // =========================================
 
     const myQuotes = [
       '变态！', '笨蛋！', '干嘛呢你，快把手拿开~~', '你看我的主人了吗？QAQ',
@@ -453,11 +458,9 @@ queueMicrotask(() => {
       '嗨~，快来逗我玩吧！', 'Hentai!', '非礼呀！救命！', '不要摸我了，我会告诉威龙来打你的！'
     ];
     const hoverQuotes = ['快看，有鼠鼠滑过来了！', '你是想和我玩吗？', '盯着我看干嘛呀(〃▽〃)', '嘿咻！被我抓到了吧！'];
-
-    // --- 新增：切换标签页台词 ---
     const tabQuotes = ['鼠鼠都在哪呢？', '出来啦，别藏啦', '躲猫猫结束了'];
 
-    function showBubbleText(text, duration = 3000) {
+    function showBubbleText(text, duration = BUBBLE_TIME) {
       const tips = document.querySelector('#oml2d-tips');
       if (!tips) return;
       if (hideTimer) clearTimeout(hideTimer);
@@ -469,18 +472,15 @@ queueMicrotask(() => {
       }, duration);
     }
 
-    // 核心：深度复位逻辑，确保清理干净
     function forceResetModel() {
       if (quickUpdate) clearInterval(quickUpdate);
       if (!modelWrapper) return;
-
       const manager = modelWrapper.model.internalModel?.motionManager?.expressionManager;
       if (manager) {
         manager.setExpression('');
         if (typeof manager.stopAllExpressions === 'function') manager.stopAllExpressions();
         if (manager._currentExpressionIndex !== undefined) manager._currentExpressionIndex = -1;
       }
-
       const core = modelWrapper.model.internalModel?.coreModel;
       if (core) {
         ['ParamCheek', 'ParamAngry', 'ParamTear', 'ParamEyeSize'].forEach(id => {
@@ -491,8 +491,6 @@ queueMicrotask(() => {
           core.setParameterValueById('ParamEyeROpen', 1); 
         } catch(e) {}
       }
-      
-      // 最终锁定刷新
       setTimeout(() => {
         if (modelWrapper.model.update) modelWrapper.model.update(0);
       }, 50);
@@ -500,8 +498,6 @@ queueMicrotask(() => {
 
     function playAction(expName, text) {
       if (!modelWrapper) return;
-
-      // 杀掉旧任务，确保新台词能挤掉旧台词
       if (expressionTimer) clearTimeout(expressionTimer);
       if (quickUpdate) clearInterval(quickUpdate);
 
@@ -509,8 +505,7 @@ queueMicrotask(() => {
       if (manager) manager.setExpression(expName);
       if (modelWrapper.model.executeMotion) modelWrapper.model.executeMotion('TapBody');
       
-      // 强制显示新气泡，即便上一个气泡还没消失
-      if (text) showBubbleText(text, 3000); 
+      if (text) showBubbleText(text, BUBBLE_TIME); 
 
       quickUpdate = setInterval(() => {
         if (modelWrapper.model.update) modelWrapper.model.update(0);
@@ -518,29 +513,24 @@ queueMicrotask(() => {
 
       expressionTimer = setTimeout(() => {
         forceResetModel();
-      }, 3000);
+      }, RESET_TIME);
     }
 
-    / --- 核心修复：监听标签页切换（增加强制刷新逻辑） ---
+    // --- 核心修复：监听标签页切换 ---
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
-        // 1. 只要切回来，先暴力清空当前可能卡住的所有状态
         if (expressionTimer) clearTimeout(expressionTimer);
         if (hideTimer) clearTimeout(hideTimer);
         if (quickUpdate) clearInterval(quickUpdate);
 
-        // 2. 重新获取模型实例（防止 Pjax 后实例丢失）
         const instance = window.myOmlInstance || window.OML2D?.instance;
         if (instance && instance.models) {
           modelWrapper = Array.isArray(instance.models) ? instance.models[0] : instance.models;
         }
 
         if (modelWrapper) {
-          // 3. 随机选一句台词并“插队”执行
           const targetText = tabQuotes[Math.floor(Math.random() * tabQuotes.length)];
-          console.log("🚀 检测到切回页面，强制更新台词:", targetText);
-          
-          // 这里的 2000 代表切换台词只停留 2 秒，这样即使你切得快，也不会卡住
+          // 切换回来时，我们可以让气泡停留短一点，比如 2000
           playAction('happy', targetText); 
         }
       }
