@@ -60,7 +60,7 @@
   isHome: false,
   isHighlightShrink: false,
   isToc: false,
-  postUpdate: '2026-03-25 15:23:25',
+  postUpdate: '2026-03-25 15:28:36',
   postMainColor: '',
 }</script><noscript><style type="text/css">
   #nav {
@@ -386,24 +386,52 @@ queueMicrotask(() => {
       }
     }
 
+    // 强力复位逻辑：确保气泡消失，且模型脸部参数彻底归零
     function forceResetModel() {
       if (quickUpdate) clearInterval(quickUpdate);
+      
       hideBubble(); 
+
       if (!modelWrapper) return;
+
+      // 1. 停止所有正在运行的表情
       const manager = modelWrapper.model.internalModel?.motionManager?.expressionManager;
       if (manager) {
-        manager.setExpression('');
+        manager.setExpression(''); 
+        if (typeof manager.stopAllExpressions === 'function') manager.stopAllExpressions();
         if (manager._currentExpressionIndex !== undefined) manager._currentExpressionIndex = -1;
       }
+
+      // 2. 核心修复：强制重置所有常见的脸部表情参数 [重要]
       const core = modelWrapper.model.internalModel?.coreModel;
       if (core) {
-        ['ParamCheek', 'ParamAngry', 'ParamTear', 'ParamEyeSize'].forEach(id => {
-          try { core.setParameterValueById(id, 0); } catch(e) {}
+        // 这里包含了麦晓雯模型中几乎所有可能导致“卡脸”的参数 ID
+        const faceParams = [
+          'ParamCheek', 'ParamAngry', 'ParamTear', 'ParamEyeSize', 
+          'ParamMouthForm', 'ParamMouthOpenY', 'ParamBrowLY', 'ParamBrowRY',
+          'ParamBrowLForm', 'ParamBrowRForm', 'ParamEyeLSmile', 'ParamEyeRSmile'
+        ];
+        
+        faceParams.forEach(id => {
+          try {
+            // 强制设为默认值 0
+            core.setParameterValueById(id, 0); 
+          } catch(e) {}
         });
+
+        // 确保眼睛是睁开的（默认通常是 1）
+        try { 
+          core.setParameterValueById('ParamEyeLOpen', 1); 
+          core.setParameterValueById('ParamEyeROpen', 1); 
+        } catch(e) {}
       }
-      setTimeout(() => {
+
+      // 3. 连刷三次：防止因为一帧刷新不及时导致的残留
+      let count = 0;
+      const finalRefresh = setInterval(() => {
         if (modelWrapper.model.update) modelWrapper.model.update(0);
-      }, 50);
+        if (count++ > 3) clearInterval(finalRefresh);
+      }, 30);
     }
 
     function playAction(expName, text) {
