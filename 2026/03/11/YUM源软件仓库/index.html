@@ -749,7 +749,7 @@ queueMicrotask(() => {
       if (modelWrapper.model.executeMotion) modelWrapper.model.executeMotion('TapBody');
       
       // 强制显示新气泡，即便上一个气泡还没消失
-      if (text) showBubbleText(text, 2000); 
+      if (text) showBubbleText(text, 3000); 
 
       quickUpdate = setInterval(() => {
         if (modelWrapper.model.update) modelWrapper.model.update(0);
