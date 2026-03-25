@@ -60,7 +60,7 @@
   isHome: false,
   isHighlightShrink: false,
   isToc: false,
-  postUpdate: '2026-03-25 15:04:40',
+  postUpdate: '2026-03-25 15:10:52',
   postMainColor: '',
 }</script><noscript><style type="text/css">
   #nav {
@@ -382,7 +382,7 @@ queueMicrotask(() => {
       if (modelWrapper.model.executeMotion) modelWrapper.model.executeMotion('TapBody');
       
       // 强制显示新气泡，即便上一个气泡还没消失
-      if (text) showBubbleText(text, 3000); 
+      if (text) showBubbleText(text, 2000); 
 
       quickUpdate = setInterval(() => {
         if (modelWrapper.model.update) modelWrapper.model.update(0);
