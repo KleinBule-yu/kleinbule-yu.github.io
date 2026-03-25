@@ -320,7 +320,7 @@ queueMicrotask(() => {
     let quickUpdate = null;
 
     // ================= 配置区 =================
-    const ACTION_DURATION = 3000; // 同步停留时间
+    const ACTION_DURATION = 3500; // 动作和气泡停留时间 (3.5秒)
     // =========================================
 
     const myQuotes = [
@@ -335,7 +335,7 @@ queueMicrotask(() => {
     const hoverQuotes = ['快看，有鼠鼠滑过来了！', '你是想和我玩吗？', '盯着我看干嘛呀(〃▽〃)', '嘿咻！被我抓到了吧！'];
     const tabQuotes = ['鼠鼠都在哪呢？', '出来啦，别藏啦', '躲猫猫结束了'];
 
-    // --- 样式美化注入（强制单行+质感美化） ---
+    // --- 样式注入 ---
     const style = document.createElement('style');
     style.innerHTML = `
       #oml2d-tips {
@@ -346,13 +346,14 @@ queueMicrotask(() => {
         padding: 8px 15px !important;
         color: #ff69b4 !important;
         font-weight: bold !important;
-        white-space: nowrap !important; /* 强制单行 */
+        white-space: nowrap !important;
         word-break: keep-all !important;
         width: auto !important;
         max-width: none !important;
         left: 50% !important;
         transform: translateX(-50%) !important;
         box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+        z-index: 9999 !important;
       }
     `;
     document.head.appendChild(style);
@@ -365,44 +366,27 @@ queueMicrotask(() => {
       }
     }
 
-    // --- 核心修复：暴力重置函数 ---
+    // 强力重置
     function forceResetModel() {
       if (quickUpdate) clearInterval(quickUpdate);
       hideBubble(); 
-
       if (!modelWrapper) return;
-      
-      // 1. 彻底停掉表情管理器
       const manager = modelWrapper.model.internalModel?.motionManager?.expressionManager;
       if (manager) {
         manager.setExpression('');
         if (typeof manager.stopAllExpressions === 'function') manager.stopAllExpressions();
         if (manager._currentExpressionIndex !== undefined) manager._currentExpressionIndex = -1;
       }
-
-      // 2. 强力清空所有可能的脸部残留参数
       const core = modelWrapper.model.internalModel?.coreModel;
       if (core) {
-        const faceParams = [
-          'ParamCheek', 'ParamAngry', 'ParamTear', 'ParamEyeSize', 
-          'ParamMouthForm', 'ParamMouthOpenY', 'ParamBrowLY', 'ParamBrowRY',
-          'ParamBrowLForm', 'ParamBrowRForm', 'ParamEyeLSmile', 'ParamEyeRSmile'
-        ];
-        faceParams.forEach(id => {
-          try { core.setParameterValueById(id, 0); } catch(e) {}
-        });
-        // 确保复位后眼睛是睁开的
-        try { 
-          core.setParameterValueById('ParamEyeLOpen', 1); 
-          core.setParameterValueById('ParamEyeROpen', 1); 
-        } catch(e) {}
+        const faceParams = ['ParamCheek', 'ParamAngry', 'ParamTear', 'ParamEyeSize', 'ParamMouthForm', 'ParamMouthOpenY', 'ParamBrowLY', 'ParamBrowRY', 'ParamBrowLForm', 'ParamBrowRForm', 'ParamEyeLSmile', 'ParamEyeRSmile'];
+        faceParams.forEach(id => { try { core.setParameterValueById(id, 0); } catch(e) {} });
+        try { core.setParameterValueById('ParamEyeLOpen', 1); core.setParameterValueById('ParamEyeROpen', 1); } catch(e) {}
       }
-
-      // 3. 连刷机制：防止单帧刷新失败
-      let refreshCount = 0;
-      const refreshTimer = setInterval(() => {
+      let count = 0;
+      const refresh = setInterval(() => {
         if (modelWrapper.model.update) modelWrapper.model.update(0);
-        if (refreshCount++ > 5) clearInterval(refreshTimer);
+        if (count++ > 5) clearInterval(refresh);
       }, 30);
     }
 
@@ -424,44 +408,73 @@ queueMicrotask(() => {
         }
       }
 
-      quickUpdate = setInterval(() => {
-        if (modelWrapper.model.update) modelWrapper.model.update(0);
-      }, 30);
-
-      expressionTimer = setTimeout(() => {
-        forceResetModel();
-      }, ACTION_DURATION); 
+      quickUpdate = setInterval(() => { if (modelWrapper.model.update) modelWrapper.model.update(0); }, 30);
+      expressionTimer = setTimeout(forceResetModel, ACTION_DURATION); 
     }
 
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
-        const instance = window.myOmlInstance || window.OML2D?.instance;
-        if (instance && instance.models) {
-          modelWrapper = Array.isArray(instance.models) ? instance.models[0] : instance.models;
-        }
-        if (modelWrapper) {
-          const targetText = tabQuotes[Math.floor(Math.random() * tabQuotes.length)];
-          playAction('happy', targetText); 
-        }
-      }
-    });
+    function welcomeVisitor() {
+      if (!modelWrapper) return;
+      const fullTitle = document.title;
+      let pageName = fullTitle.split(' | ')[0] || fullTitle.split(' - ')[0] || fullTitle;
+      if (pageName === '首页' || pageName === 'xiaoyu的博客' || window.location.pathname === '/') return;
+      setTimeout(() => playAction('happy', `欢迎阅读[${pageName}][xiaoyu的博客]`), 1000);
+    }
 
     function bindInteractions() {
       const instance = window.myOmlInstance || window.OML2D?.instance;
       if (instance && instance.models) {
         modelWrapper = Array.isArray(instance.models) ? instance.models[0] : instance.models;
+
+        // --- 全自动链接感应逻辑 ---
+        const setupAutoSense = () => {
+          // 选取页面上所有的链接
+          const allLinks = document.querySelectorAll('a');
+          allLinks.forEach(el => {
+            if (el.getAttribute('data-oml-bind')) return;
+            el.setAttribute('data-oml-bind', 'true');
+
+            el.addEventListener('mouseenter', () => {
+              const href = el.getAttribute('href') || "";
+              const text = el.innerText.trim();
+              if (!text || text.length > 30) return; // 过滤掉太长的文字或空链接
+
+              let say = "";
+              
+              // 1. 识别分类 (路径通常包含 /categories/)
+              if (href.includes('/categories/')) {
+                say = text === 'Linux' ? "要去看看 Linux 分类么？" : `点它可以查看 [${text}] 分类下的所有文章呦！`;
+              }
+              // 2. 识别标签 (路径通常包含 /tags/)
+              else if (href.includes('/tags/')) {
+                say = text === 'rocky9.2' ? "要看看 rocky9.2 标签么？" : `点它可以查看 [${text}] 标签下的所有文章呦！`;
+              }
+              // 3. 识别留言板 (路径通常包含 /message/ 或 /guestbook/)
+              else if (href.includes('/message') || text.includes('留言')) {
+                say = "去留言板找[xiaoyu]聊聊天吧！";
+              }
+              // 4. 识别文章 (通常 Hexo 文章路径包含 /p/ 或 /posts/ 或 2026/03/ 等日期)
+              // 如果链接是以 / 结尾且不属于以上分类，通常就是文章
+              else if (/\/\d{4}\/\d{2}\/|posts\/|p\//.test(href)) {
+                say = `点它可以查看 [${text}] 的内容哦！`;
+              }
+
+              if (say) playAction('happy', say);
+            });
+          });
+        };
+
+        setupAutoSense();
+
+        // --- 模型本身交互 ---
         const canvas = document.querySelector('canvas[id*="oml2d"]') || document.querySelector('#oml-canvas');
         const stage = document.querySelector('#oml2d-stage') || document.querySelector('#oml-stage');
-
         if (canvas && modelWrapper.model) {
           canvas.onclick = (e) => {
             e.stopPropagation();
             const exps = ['angry', 'cry', 'shy', 'happy', 'think'];
             playAction(exps[Math.floor(Math.random() * exps.length)], myQuotes[Math.floor(Math.random() * myQuotes.length)]);
           };
-          if (stage) {
-            stage.onmouseenter = () => playAction('happy', hoverQuotes[Math.floor(Math.random() * hoverQuotes.length)]);
-          }
+          if (stage) stage.onmouseenter = () => playAction('happy', hoverQuotes[Math.floor(Math.random() * hoverQuotes.length)]);
           return true;
         }
       }
@@ -482,12 +495,22 @@ queueMicrotask(() => {
       }
       let retry = 0;
       const timer = setInterval(() => {
-        if (bindInteractions() || retry++ > 15) clearInterval(timer);
+        if (bindInteractions()) {
+          clearInterval(timer);
+          welcomeVisitor();
+        }
+        if (retry++ > 15) clearInterval(timer);
       }, 400);
     }
 
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && modelWrapper) playAction('happy', tabQuotes[Math.floor(Math.random() * tabQuotes.length)]);
+    });
+
     window.addEventListener('load', init);
-    document.addEventListener('pjax:complete', () => setTimeout(bindInteractions, 600));
+    document.addEventListener('pjax:complete', () => {
+      setTimeout(() => { bindInteractions(); welcomeVisitor(); }, 600);
+    });
   })();
 </script>
 <link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/aplayer/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.cbd.int/anzhiyu-blog-static@1.0.1/js/APlayer.min.js"></script><script src="https://cdn.cbd.int/hexo-anzhiyu-music@1.0.1/assets/js/Meting2.min.js"></script><script src="https://cdn.cbd.int/pjax@0.2.8/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
