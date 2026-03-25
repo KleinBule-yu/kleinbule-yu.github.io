@@ -419,46 +419,47 @@ queueMicrotask(() => {
     function playAction(expName, text) {
       if (!modelWrapper) return;
 
-      // 1. 杀掉旧的复位任务和刷新器
+      // 杀掉旧任务，确保新台词能挤掉旧台词
       if (expressionTimer) clearTimeout(expressionTimer);
       if (quickUpdate) clearInterval(quickUpdate);
 
-      // 2. 执行新表情和动作
       const manager = modelWrapper.model.internalModel?.motionManager?.expressionManager;
       if (manager) manager.setExpression(expName);
       if (modelWrapper.model.executeMotion) modelWrapper.model.executeMotion('TapBody');
-      if (text) showBubbleText(text, 4000);
+      
+      // 强制显示新气泡，即便上一个气泡还没消失
+      if (text) showBubbleText(text, 3000); 
 
-      // 3. 启动新高频刷新
       quickUpdate = setInterval(() => {
         if (modelWrapper.model.update) modelWrapper.model.update(0);
       }, 30);
 
-      // 4. 重新倒计时复位
       expressionTimer = setTimeout(() => {
         forceResetModel();
-        console.log("✅ 麦晓雯已复位");
       }, 3000);
     }
 
-    // --- 修复版：监听标签页切换 ---
+    / --- 核心修复：监听标签页切换（增加强制刷新逻辑） ---
     document.addEventListener('visibilitychange', () => {
-      // 只有当页面可见，且模型已经准备好的时候才触发
       if (!document.hidden) {
-        console.log("👀 欢迎回来，正在检查模型状态...");
-        
-        // 检查模型是否加载成功，如果还没加载完，就尝试重新获取一次实例
-        if (!modelWrapper) {
-          const instance = window.myOmlInstance || window.OML2D?.instance;
-          if (instance && instance.models) {
-            modelWrapper = Array.isArray(instance.models) ? instance.models[0] : instance.models;
-          }
+        // 1. 只要切回来，先暴力清空当前可能卡住的所有状态
+        if (expressionTimer) clearTimeout(expressionTimer);
+        if (hideTimer) clearTimeout(hideTimer);
+        if (quickUpdate) clearInterval(quickUpdate);
+
+        // 2. 重新获取模型实例（防止 Pjax 后实例丢失）
+        const instance = window.myOmlInstance || window.OML2D?.instance;
+        if (instance && instance.models) {
+          modelWrapper = Array.isArray(instance.models) ? instance.models[0] : instance.models;
         }
 
         if (modelWrapper) {
+          // 3. 随机选一句台词并“插队”执行
           const targetText = tabQuotes[Math.floor(Math.random() * tabQuotes.length)];
-          // 动作设为 'Idle' 或默认动作，表情 happy
-          playAction('happy', targetText);
+          console.log("🚀 检测到切回页面，强制更新台词:", targetText);
+          
+          // 这里的 2000 代表切换台词只停留 2 秒，这样即使你切得快，也不会卡住
+          playAction('happy', targetText); 
         }
       }
     });
