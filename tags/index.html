@@ -317,12 +317,11 @@ queueMicrotask(() => {
   (function() {
     let modelWrapper = null;
     let expressionTimer = null;
-    let hideTimer = null;
     let quickUpdate = null;
 
     // ================= 配置区 =================
-    const BUBBLE_TIME = 3000;  // 气泡文字停留时间 (4秒)
-    const RESET_TIME = 3000;   // 表情动作复位时间 (3秒)
+    // 修改这个数字（毫秒），气泡和表情会同步停留这么久
+    const ACTION_DURATION = 3000; 
     // =========================================
 
     const myQuotes = [
@@ -337,77 +336,90 @@ queueMicrotask(() => {
     const hoverQuotes = ['快看，有鼠鼠滑过来了！', '你是想和我玩吗？', '盯着我看干嘛呀(〃▽〃)', '嘿咻！被我抓到了吧！'];
     const tabQuotes = ['鼠鼠都在哪呢？', '出来啦，别藏啦', '躲猫猫结束了'];
 
-    function showBubbleText(text, duration = BUBBLE_TIME) {
+    // 统一隐藏气泡的逻辑
+    function hideBubble() {
       const tips = document.querySelector('#oml2d-tips');
-      if (!tips) return;
-      if (hideTimer) clearTimeout(hideTimer);
-      tips.innerText = text;
-      tips.style.setProperty('opacity', '1', 'important');
-      tips.style.setProperty('visibility', 'visible', 'important');
-      hideTimer = setTimeout(() => {
+      if (tips) {
         tips.style.setProperty('opacity', '0', 'important');
-      }, duration);
+        setTimeout(() => {
+          tips.style.setProperty('visibility', 'hidden', 'important');
+        }, 300);
+      }
     }
 
+    // 统一复位逻辑：杀掉刷新器、关掉气泡、恢复表情
     function forceResetModel() {
       if (quickUpdate) clearInterval(quickUpdate);
+      
+      // 1. 强制隐藏气泡
+      hideBubble(); 
+
       if (!modelWrapper) return;
+      
+      // 2. 恢复默认表情
       const manager = modelWrapper.model.internalModel?.motionManager?.expressionManager;
       if (manager) {
         manager.setExpression('');
-        if (typeof manager.stopAllExpressions === 'function') manager.stopAllExpressions();
         if (manager._currentExpressionIndex !== undefined) manager._currentExpressionIndex = -1;
       }
+
+      // 3. 重置脸部参数
       const core = modelWrapper.model.internalModel?.coreModel;
       if (core) {
         ['ParamCheek', 'ParamAngry', 'ParamTear', 'ParamEyeSize'].forEach(id => {
           try { core.setParameterValueById(id, 0); } catch(e) {}
         });
-        try { 
-          core.setParameterValueById('ParamEyeLOpen', 1); 
-          core.setParameterValueById('ParamEyeROpen', 1); 
-        } catch(e) {}
       }
+
+      // 4. 刷新一帧确保模型变回原样
       setTimeout(() => {
         if (modelWrapper.model.update) modelWrapper.model.update(0);
       }, 50);
     }
 
+    // 核心执行函数：表情和台词同步开启
     function playAction(expName, text) {
       if (!modelWrapper) return;
+      
+      // 每次新动作开始，先清理旧的倒计时
       if (expressionTimer) clearTimeout(expressionTimer);
       if (quickUpdate) clearInterval(quickUpdate);
 
+      // 执行表情和动作
       const manager = modelWrapper.model.internalModel?.motionManager?.expressionManager;
       if (manager) manager.setExpression(expName);
       if (modelWrapper.model.executeMotion) modelWrapper.model.executeMotion('TapBody');
       
-      if (text) showBubbleText(text, BUBBLE_TIME); 
+      // 显示气泡
+      if (text) {
+        const tips = document.querySelector('#oml2d-tips');
+        if (tips) {
+          tips.innerText = text;
+          tips.style.setProperty('opacity', '1', 'important');
+          tips.style.setProperty('visibility', 'visible', 'important');
+        }
+      }
 
+      // 开启高频刷新
       quickUpdate = setInterval(() => {
         if (modelWrapper.model.update) modelWrapper.model.update(0);
       }, 30);
 
+      // 唯一倒计时：时间一到，表情和气泡一起消失
       expressionTimer = setTimeout(() => {
         forceResetModel();
-      }, RESET_TIME);
+      }, ACTION_DURATION); 
     }
 
-    // --- 核心修复：监听标签页切换 ---
+    // 监听标签页切换（躲猫猫功能）
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
-        if (expressionTimer) clearTimeout(expressionTimer);
-        if (hideTimer) clearTimeout(hideTimer);
-        if (quickUpdate) clearInterval(quickUpdate);
-
         const instance = window.myOmlInstance || window.OML2D?.instance;
         if (instance && instance.models) {
           modelWrapper = Array.isArray(instance.models) ? instance.models[0] : instance.models;
         }
-
         if (modelWrapper) {
           const targetText = tabQuotes[Math.floor(Math.random() * tabQuotes.length)];
-          // 切换回来时，我们可以让气泡停留短一点，比如 2000
           playAction('happy', targetText); 
         }
       }
@@ -421,6 +433,7 @@ queueMicrotask(() => {
         const stage = document.querySelector('#oml2d-stage') || document.querySelector('#oml-stage');
 
         if (canvas && modelWrapper.model) {
+          // 点击模型交互
           canvas.onclick = (e) => {
             e.stopPropagation();
             const exps = ['angry', 'cry', 'shy', 'happy', 'think'];
@@ -429,13 +442,14 @@ queueMicrotask(() => {
             playAction(targetExp, targetText);
           };
 
+          // 鼠标悬停交互
           if (stage) {
             stage.onmouseenter = () => {
               const targetText = hoverQuotes[Math.floor(Math.random() * hoverQuotes.length)];
               playAction('happy', targetText);
             };
           }
-          console.log("⚡ 麦晓雯交互合体版已就绪");
+          console.log("⚡ 麦晓雯同步合体版已就绪");
           return true;
         }
       }
