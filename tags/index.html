@@ -315,94 +315,137 @@ queueMicrotask(() => {
 });</script><script async src="/anzhiyu/random.js"></script><div class="js-pjax"><input type="hidden" name="page-type" id="page-type" value="tags"></div><script>var visitorMail = "";
 </script><script async data-pjax src="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/waterfall/waterfall.js"></script><script src="https://cdn.cbd.int/qrcodejs@1.0.0/qrcode.min.js"></script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.1.9/icon/ali_iconfont_css.css"><script src="/js/oml2d.js"></script><script>
   (function() {
+    let modelWrapper = null;
+    let expressionTimer = null;
+    let hideTimer = null;
+    let quickUpdate = null; // 把高频刷新也提出来，方便全局杀掉
+
     const myQuotes = [
       '变态！', '笨蛋！', '干嘛呢你，快把手拿开~~', '你看我的主人了吗？QAQ',
-      '笨蛋笨蛋笨蛋！', '萝莉控是什么呀？', '喵喵喵~', '干嘛动我呀！小心我飞过去扎你！',
+      '笨蛋笨蛋笨蛋！', '萝莉控是什么呀？', '喵喵喵？', '干嘛动我呀！小心我飞过去扎你！',
       '110吗，这里有个变态一直在摸我(⋟﹏⋞)', '再摸的话我可要报警了！｛●﹏●｝',
       '你看到我的包了吗？', '我才不是因为你摸我感觉舒服呢~', '是...是不小心碰到了吧',
       '鼠...鼠标放错地方了！', '你要干嘛呀？', '怕怕(/≧▽≦)/',
-      '这样的话，只能使用武力了！', '我要生气了哦', '不要动手动脚的！'
+      '这样的话，只能使用武力了！', '我要生气了哦', '不要动手动脚的！','有什么好摸的！',
+      '嗨~，快来逗我玩吧！', 'Hentai!', '非礼呀！救命！', '不要摸我了，我会告诉威龙来打你的！'
     ];
-    const hiddenQuotes = ['躲猫猫结束了', '出来了，别藏了', '鼠鼠都在哪呢？'];
-    
-    let hideTimer = null;
-    let isLock = false;
-    let lastIndex = -1;
-    let hasLeft = false;
+    const hoverQuotes = ['快看，有鼠鼠滑过来了！', '你是想和我玩吗？', '盯着我看干嘛呀(〃▽〃)', '嘿咻！被我抓到了吧！'];
 
-    function setupLive2D() {
-      if (typeof OML2D === 'undefined') {
-        console.error('OML2D 库未加载成功');
-        return;
+    function showBubbleText(text, duration = 3000) {
+      const tips = document.querySelector('#oml2d-tips');
+      if (!tips) return;
+      if (hideTimer) clearTimeout(hideTimer);
+      tips.innerText = text;
+      tips.style.setProperty('opacity', '1', 'important');
+      tips.style.setProperty('visibility', 'visible', 'important');
+      hideTimer = setTimeout(() => {
+        tips.style.setProperty('opacity', '0', 'important');
+      }, duration);
+    }
+
+    // 核心：深度复位逻辑，确保清理干净
+    function forceResetModel() {
+      if (quickUpdate) clearInterval(quickUpdate);
+      if (!modelWrapper) return;
+
+      const manager = modelWrapper.model.internalModel?.motionManager?.expressionManager;
+      if (manager) {
+        manager.setExpression('');
+        if (typeof manager.stopAllExpressions === 'function') manager.stopAllExpressions();
+        if (manager._currentExpressionIndex !== undefined) manager._currentExpressionIndex = -1;
       }
 
-      const oml2d = OML2D.loadOml2d({
-        dockedPosition: 'right',
-        tips: { enable: true, welcomeTips: { enable: true } },
-        models: [{
-          path: '/live2d_models/maixiaowen/maixiaowen.model3.json',
-          scale: 0.08,
-          position: [65, 150],
-          stageStyle: { width: 300, height: 400 }
-        }]
-      });
+      const core = modelWrapper.model.internalModel?.coreModel;
+      if (core) {
+        ['ParamCheek', 'ParamAngry', 'ParamTear', 'ParamEyeSize'].forEach(id => {
+          try { core.setParameterValueById(id, 0); } catch(e) {}
+        });
+        try { 
+          core.setParameterValueById('ParamEyeLOpen', 1); 
+          core.setParameterValueById('ParamEyeROpen', 1); 
+        } catch(e) {}
+      }
+      
+      // 最终锁定刷新
+      setTimeout(() => {
+        if (modelWrapper.model.update) modelWrapper.model.update(0);
+      }, 50);
+    }
 
-      const forceShowText = (text) => {
-        const tipsElement = document.querySelector('#oml2d-tips');
-        if (!tipsElement) return;
-        isLock = true;
-        if (hideTimer) clearTimeout(hideTimer);
-        tipsElement.innerText = text;
-        tipsElement.style.setProperty('display', 'block', 'important');
-        tipsElement.style.setProperty('opacity', '1', 'important');
-        tipsElement.style.setProperty('visibility', 'visible', 'important');
-        hideTimer = setTimeout(() => {
-          tipsElement.style.setProperty('opacity', '0', 'important');
-          isLock = false;
-        }, 4000);
-      };
+    function playAction(expName, text) {
+      if (!modelWrapper) return;
 
-      window.addEventListener('mousedown', function(e) {
-        const stage = document.querySelector('#oml2d-stage');
-        if (!stage) return;
-        const rect = stage.getBoundingClientRect();
-        if (e.clientX >= rect.left && e.clientX <= rect.right &&
-            e.clientY >= rect.top && e.clientY <= rect.bottom) {
-          let newIndex;
-          do { newIndex = Math.floor(Math.random() * myQuotes.length); } while (newIndex === lastIndex);
-          lastIndex = newIndex;
-          forceShowText(myQuotes[newIndex]);
-          if (oml2d && oml2d.model && oml2d.model.executeMotion) {
-              oml2d.model.executeMotion('TapBody', Math.floor(Math.random() * 3));
+      // 1. 杀掉旧的复位任务和刷新器
+      if (expressionTimer) clearTimeout(expressionTimer);
+      if (quickUpdate) clearInterval(quickUpdate);
+
+      // 2. 执行新表情和动作
+      const manager = modelWrapper.model.internalModel?.motionManager?.expressionManager;
+      if (manager) manager.setExpression(expName);
+      if (modelWrapper.model.executeMotion) modelWrapper.model.executeMotion('TapBody');
+      if (text) showBubbleText(text, 4000);
+
+      // 3. 启动新高频刷新
+      quickUpdate = setInterval(() => {
+        if (modelWrapper.model.update) modelWrapper.model.update(0);
+      }, 30);
+
+      // 4. 重新倒计时复位
+      expressionTimer = setTimeout(() => {
+        forceResetModel();
+        console.log("✅ 麦晓雯已复位");
+      }, 3000);
+    }
+
+    function bindInteractions() {
+      const instance = window.myOmlInstance || window.OML2D?.instance;
+      if (instance && instance.models) {
+        modelWrapper = Array.isArray(instance.models) ? instance.models[0] : instance.models;
+        const canvas = document.querySelector('canvas[id*="oml2d"]') || document.querySelector('#oml-canvas');
+        const stage = document.querySelector('#oml2d-stage') || document.querySelector('#oml-stage');
+
+        if (canvas && modelWrapper.model) {
+          canvas.onclick = (e) => {
+            e.stopPropagation();
+            const exps = ['angry', 'cry', 'shy', 'happy', 'think'];
+            const targetExp = exps[Math.floor(Math.random() * exps.length)];
+            const targetText = myQuotes[Math.floor(Math.random() * myQuotes.length)];
+            playAction(targetExp, targetText);
+          };
+
+          if (stage) {
+            stage.onmouseenter = () => {
+              const targetText = hoverQuotes[Math.floor(Math.random() * hoverQuotes.length)];
+              playAction('happy', targetText);
+            };
           }
+          console.log("⚡ 麦晓雯交互合体版已就绪");
+          return true;
         }
-      }, true);
-
-      const checkVisibility = () => {
-        if (document.hidden) { hasLeft = true; } 
-        else if (hasLeft) {
-          hasLeft = false;
-          setTimeout(() => forceShowText(hiddenQuotes[Math.floor(Math.random() * hiddenQuotes.length)]), 200);
-        }
-      };
-      document.addEventListener('visibilitychange', checkVisibility);
-      window.addEventListener('focus', checkVisibility);
-
-      const styleId = 'oml2d-custom-fix';
-      if (!document.getElementById(styleId)) {
-        const style = document.createElement('style');
-        style.id = styleId;
-        style.innerHTML = '#oml2d-tips { transition: opacity 0.2s ease !important; z-index: 2147483647 !important; }';
-        document.head.appendChild(style);
       }
+      return false;
     }
 
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', setupLive2D);
-    } else {
-      setupLive2D();
+    async function init() {
+      if (!window.myOmlInstance) {
+        window.myOmlInstance = await OML2D.loadOml2d({
+          dockedPosition: 'right',
+          models: [{
+            path: '/live2d_models/maixiaowen/maixiaowen.model3.json',
+            scale: 0.08,
+            position: [65, 150],
+            stageStyle: { width: 300, height: 400 }
+          }]
+        });
+      }
+      let retry = 0;
+      const timer = setInterval(() => {
+        if (bindInteractions() || retry++ > 15) clearInterval(timer);
+      }, 400);
     }
-    document.addEventListener('pjax:complete', setupLive2D);
+
+    window.addEventListener('load', init);
+    document.addEventListener('pjax:complete', () => setTimeout(bindInteractions, 600));
   })();
 </script>
 <link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/aplayer/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.cbd.int/anzhiyu-blog-static@1.0.1/js/APlayer.min.js"></script><script src="https://cdn.cbd.int/hexo-anzhiyu-music@1.0.1/assets/js/Meting2.min.js"></script><script src="https://cdn.cbd.int/pjax@0.2.8/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
