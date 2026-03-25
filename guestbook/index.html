@@ -361,7 +361,8 @@ queueMicrotask(() => {
     let quickUpdate = null;
 
     // ================= 配置区 =================
-    const ACTION_DURATION = 3000;  // 停留时间
+    // 修改这个数字（毫秒），气泡和表情会同步停留这么久
+    const ACTION_DURATION = 3000; 
     // =========================================
 
     const myQuotes = [
@@ -376,34 +377,7 @@ queueMicrotask(() => {
     const hoverQuotes = ['快看，有鼠鼠滑过来了！', '你是想和我玩吗？', '盯着我看干嘛呀(〃▽〃)', '嘿咻！被我抓到了吧！'];
     const tabQuotes = ['鼠鼠都在哪呢？', '出来啦，别藏啦', '躲猫猫结束了'];
 
-    // --- 新增：美化气泡样式的 CSS 注入 ---
-    const style = document.createElement('style');
-    style.innerHTML = `
-      #oml2d-tips {
-        background: rgba(255, 255, 255, 0.85) !important; /* 半透明白 */
-        backdrop-filter: blur(5px) !important;           /* 磨砂效果 */
-        border: 1px solid rgba(255, 182, 193, 0.5) !important; /* 淡淡的粉色边框 */
-        border-radius: 12px !important;                 /* 圆角 */
-        padding: 8px 15px !important;                   /* 内边距 */
-        color: #ff69b4 !important;                      /* 少女粉字体颜色 */
-        font-weight: bold !important;
-        font-family: "Microsoft YaHei", sans-serif !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
-        
-        /* 核心：强制不换行 */
-        white-space: nowrap !important;                 
-        word-break: keep-all !important;
-        width: auto !important;
-        min-width: fit-content !important;
-        max-width: none !important;                     /* 解除宽度限制 */
-        
-        left: 50% !important;
-        transform: translateX(-50%) !important;         /* 居中对齐 */
-        transition: opacity 0.3s ease !important;
-      }
-    `;
-    document.head.appendChild(style);
-
+    // 统一隐藏气泡的逻辑
     function hideBubble() {
       const tips = document.querySelector('#oml2d-tips');
       if (tips) {
@@ -414,63 +388,50 @@ queueMicrotask(() => {
       }
     }
 
-    // 强力复位逻辑：确保气泡消失，且模型脸部参数彻底归零
+    // 统一复位逻辑：杀掉刷新器、关掉气泡、恢复表情
     function forceResetModel() {
       if (quickUpdate) clearInterval(quickUpdate);
       
+      // 1. 强制隐藏气泡
       hideBubble(); 
 
       if (!modelWrapper) return;
-
-      // 1. 停止所有正在运行的表情
+      
+      // 2. 恢复默认表情
       const manager = modelWrapper.model.internalModel?.motionManager?.expressionManager;
       if (manager) {
-        manager.setExpression(''); 
-        if (typeof manager.stopAllExpressions === 'function') manager.stopAllExpressions();
+        manager.setExpression('');
         if (manager._currentExpressionIndex !== undefined) manager._currentExpressionIndex = -1;
       }
 
-      // 2. 核心修复：强制重置所有常见的脸部表情参数 [重要]
+      // 3. 重置脸部参数
       const core = modelWrapper.model.internalModel?.coreModel;
       if (core) {
-        // 这里包含了麦晓雯模型中几乎所有可能导致“卡脸”的参数 ID
-        const faceParams = [
-          'ParamCheek', 'ParamAngry', 'ParamTear', 'ParamEyeSize', 
-          'ParamMouthForm', 'ParamMouthOpenY', 'ParamBrowLY', 'ParamBrowRY',
-          'ParamBrowLForm', 'ParamBrowRForm', 'ParamEyeLSmile', 'ParamEyeRSmile'
-        ];
-        
-        faceParams.forEach(id => {
-          try {
-            // 强制设为默认值 0
-            core.setParameterValueById(id, 0); 
-          } catch(e) {}
+        ['ParamCheek', 'ParamAngry', 'ParamTear', 'ParamEyeSize'].forEach(id => {
+          try { core.setParameterValueById(id, 0); } catch(e) {}
         });
-
-        // 确保眼睛是睁开的（默认通常是 1）
-        try { 
-          core.setParameterValueById('ParamEyeLOpen', 1); 
-          core.setParameterValueById('ParamEyeROpen', 1); 
-        } catch(e) {}
       }
 
-      // 3. 连刷三次：防止因为一帧刷新不及时导致的残留
-      let count = 0;
-      const finalRefresh = setInterval(() => {
+      // 4. 刷新一帧确保模型变回原样
+      setTimeout(() => {
         if (modelWrapper.model.update) modelWrapper.model.update(0);
-        if (count++ > 3) clearInterval(finalRefresh);
-      }, 30);
+      }, 50);
     }
 
+    // 核心执行函数：表情和台词同步开启
     function playAction(expName, text) {
       if (!modelWrapper) return;
+      
+      // 每次新动作开始，先清理旧的倒计时
       if (expressionTimer) clearTimeout(expressionTimer);
       if (quickUpdate) clearInterval(quickUpdate);
 
+      // 执行表情和动作
       const manager = modelWrapper.model.internalModel?.motionManager?.expressionManager;
       if (manager) manager.setExpression(expName);
       if (modelWrapper.model.executeMotion) modelWrapper.model.executeMotion('TapBody');
       
+      // 显示气泡
       if (text) {
         const tips = document.querySelector('#oml2d-tips');
         if (tips) {
@@ -480,15 +441,18 @@ queueMicrotask(() => {
         }
       }
 
+      // 开启高频刷新
       quickUpdate = setInterval(() => {
         if (modelWrapper.model.update) modelWrapper.model.update(0);
       }, 30);
 
+      // 唯一倒计时：时间一到，表情和气泡一起消失
       expressionTimer = setTimeout(() => {
         forceResetModel();
       }, ACTION_DURATION); 
     }
 
+    // 监听标签页切换（躲猫猫功能）
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
         const instance = window.myOmlInstance || window.OML2D?.instance;
@@ -510,6 +474,7 @@ queueMicrotask(() => {
         const stage = document.querySelector('#oml2d-stage') || document.querySelector('#oml-stage');
 
         if (canvas && modelWrapper.model) {
+          // 点击模型交互
           canvas.onclick = (e) => {
             e.stopPropagation();
             const exps = ['angry', 'cry', 'shy', 'happy', 'think'];
@@ -517,12 +482,15 @@ queueMicrotask(() => {
             const targetText = myQuotes[Math.floor(Math.random() * myQuotes.length)];
             playAction(targetExp, targetText);
           };
+
+          // 鼠标悬停交互
           if (stage) {
             stage.onmouseenter = () => {
               const targetText = hoverQuotes[Math.floor(Math.random() * hoverQuotes.length)];
               playAction('happy', targetText);
             };
           }
+          console.log("⚡ 麦晓雯同步合体版已就绪");
           return true;
         }
       }
