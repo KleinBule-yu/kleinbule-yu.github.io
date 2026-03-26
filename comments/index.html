@@ -60,7 +60,7 @@
   isHome: false,
   isHighlightShrink: false,
   isToc: false,
-  postUpdate: '2026-03-26 14:11:10',
+  postUpdate: '2026-03-26 14:13:37',
   postMainColor: '',
 }</script><noscript><style type="text/css">
   #nav {
@@ -402,35 +402,26 @@ queueMicrotask(() => {
   }
 })()</script><input type="hidden" name="page-type" id="page-type" value="envelope"></div><script>var visitorMail = "";
 </script><script async data-pjax src="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/waterfall/waterfall.js"></script><script src="https://cdn.cbd.int/qrcodejs@1.0.0/qrcode.min.js"></script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.1.9/icon/ali_iconfont_css.css"><script src="/js/oml2d.js"></script><div style="display:none"><span id="busuanzi_container_site_pv">本站总访问量<span id="busuanzi_value_site_pv"></span>次</span><span id="busuanzi_container_site_uv">本站访客数<span id="busuanzi_value_site_uv"></span>人</span></div><script>
-  var initBusuanziFinal = function () {
+  var initBusuanziEnglish = function () {
     var container = document.querySelector('#post-info .meta-secondline');
     if (container && !document.getElementById('busuanzi-injected')) {
       
-      // 1. 定位阅读量节点并强制改名
-      var items = container.querySelectorAll('.post-meta-item');
-      var postViewItem = null;
-      
-      items.forEach(function(item) {
-        if (item.innerText.includes('Post View') || item.innerText.includes('阅读量')) {
-          postViewItem = item;
-          // 立即改名
-          item.innerHTML = item.innerHTML.replace('Post View', '阅读量');
-        }
-      });
-
-      // 2. 准备要插入的 HTML
+      // 1. 准备统计 HTML (访客 -> Visitors, 总访问 -> Total Views)
       var statsHtml = '<span id="busuanzi-injected" style="display:contents">' +
                       '<span class="post-meta-separator">|</span>' +
-                      '<span class="post-meta-item" title="访客数">' +
+                      '<span class="post-meta-item" title="Visitors">' +
                       '<i class="fa-solid fa-users"></i>' +
-                      '<span class="post-meta-label"> 访客:</span>' +
+                      '<span class="post-meta-label"> Visitors:</span>' +
                       '<span id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></span></span>' +
                       '<span class="post-meta-separator">|</span>' +
-                      '<span class="post-meta-item" title="总访问量">' +
+                      '<span class="post-meta-item" title="Total Views">' +
                       '<i class="fa-solid fa-chart-line"></i>' +
-                      '<span class="post-meta-label"> 总访问:</span>' +
+                      '<span class="post-meta-label"> Total Views:</span>' +
                       '<span id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span>' +
                       '</span>';
+      
+      // 2. 寻找第一个节点（Post View）
+      var postViewItem = container.querySelector('.post-meta-item');
       
       // 3. 插入位置逻辑
       if (postViewItem) {
@@ -444,34 +435,22 @@ queueMicrotask(() => {
                          container.querySelector('.post-meta-item:has(.fa-map-marker-alt)');
       
       if (locationItem) {
-        // 检查是否已有分隔符，没有则补一个
+        // 补全分隔符并移动
         if (locationItem.previousElementSibling && !locationItem.previousElementSibling.classList.contains('post-meta-separator')) {
           locationItem.insertAdjacentHTML('beforebegin', '<span class="post-meta-separator">|</span>');
         }
         container.appendChild(locationItem);
       }
 
-      // 5. 【防止反弹】开启监听器，如果文字变回英文就改掉它
-      var observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-          if (postViewItem && postViewItem.innerText.includes('Post View')) {
-            postViewItem.innerHTML = postViewItem.innerHTML.replace('Post View', '阅读量');
-          }
-        });
-      });
-      if (postViewItem) {
-        observer.observe(postViewItem, { childList: true, characterData: true, subtree: true });
-      }
-
-      // 6. 刷新数字
+      // 5. 刷新不蒜子数字
       if (typeof bszTag !== 'undefined' && bszTag.fetch) {
         bszTag.fetch();
       }
     }
   }
 
-  initBusuanziFinal();
-  document.addEventListener('pjax:complete', initBusuanziFinal);
+  initBusuanziEnglish();
+  document.addEventListener('pjax:complete', initBusuanziEnglish);
 </script>
 <script>
   (function() {
