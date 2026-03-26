@@ -405,11 +405,10 @@ queueMicrotask(() => {
   }
 })()</script><input type="hidden" name="page-type" id="page-type" value="post"></div><script>var visitorMail = "";
 </script><script async data-pjax src="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/waterfall/waterfall.js"></script><script src="https://cdn.cbd.int/qrcodejs@1.0.0/qrcode.min.js"></script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.1.9/icon/ali_iconfont_css.css"><script src="/js/oml2d.js"></script><div style="display:none"><span id="busuanzi_container_site_pv">本站总访问量<span id="busuanzi_value_site_pv"></span>次</span><span id="busuanzi_container_site_uv">本站访客数<span id="busuanzi_value_site_uv"></span>人</span></div><script>
-  var initBusuanziFull = function () {
-    // 1. 定位容器
+  var initBusuanziFinal = function () {
     var container = document.querySelector('#post-info .meta-secondline');
     if (container && !document.getElementById('busuanzi-injected')) {
-      // 2. 准备要插入的 HTML 片段
+      // 1. 准备统计 HTML
       var statsHtml = '<span id="busuanzi-injected" style="display:contents">' +
                       '<span class="post-meta-separator">|</span>' +
                       '<span class="post-meta-item" title="访客数">' +
@@ -423,25 +422,35 @@ queueMicrotask(() => {
                       '<span id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span>' +
                       '</span>';
       
-      // 3. 寻找第一个节点（通常是阅读量）
+      // 2. 寻找第一个节点（阅读量）
       var firstItem = container.querySelector('.post-meta-item');
       if (firstItem) {
-        // 在阅读量后面插入访客和总访问，这样“地点”就会被顺延到最后
         firstItem.insertAdjacentHTML('afterend', statsHtml);
       } else {
-        // 万一没找到阅读量，就直接放最后
-        container.insertAdjacentHTML('beforeend', statsHtml);
+        container.insertAdjacentHTML('afterbegin', statsHtml);
       }
 
-      // 4. 强制刷新不蒜子数字
+      // 3. 【关键：强制移动地点到最后】
+      // 寻找带有位置图标的节点
+      var locationItem = container.querySelector('.post-meta-item:has(.fa-location-dot)') || 
+                         container.querySelector('.post-meta-item:has(.fa-map-marker-alt)');
+      
+      if (locationItem) {
+        // 先加一个分隔符
+        locationItem.insertAdjacentHTML('beforebegin', '<span class="post-meta-separator">|</span>');
+        // 把地点节点剪切并追加到容器最后
+        container.appendChild(locationItem);
+      }
+
+      // 4. 刷新数字
       if (typeof bszTag !== 'undefined' && bszTag.fetch) {
         bszTag.fetch();
       }
     }
   }
 
-  initBusuanziFull();
-  document.addEventListener('pjax:complete', initBusuanziFull);
+  initBusuanziFinal();
+  document.addEventListener('pjax:complete', initBusuanziFinal);
 </script>
 <script>
   (function() {
