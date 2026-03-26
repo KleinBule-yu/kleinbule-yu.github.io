@@ -60,7 +60,7 @@
   isHome: false,
   isHighlightShrink: false,
   isToc: false,
-  postUpdate: '2026-03-25 16:09:36',
+  postUpdate: '2026-03-26 10:38:23',
   postMainColor: '',
 }</script><noscript><style type="text/css">
   #nav {
@@ -455,28 +455,143 @@ queueMicrotask(() => {
     const hoverQuotes = ['快看，有鼠鼠滑过来了！', '你是想和我玩吗？', '盯着我看干嘛呀(〃▽〃)', '嘿咻！被我抓到了吧！'];
     const tabQuotes = ['鼠鼠都在哪呢？', '出来啦，别藏啦', '躲猫猫结束了'];
 
-    // --- 样式注入 ---
+   // --- 样式注入 [Q版适配版：缩短偏移距离] ---
     const style = document.createElement('style');
     style.innerHTML = `
+      /* 1. 功能键基础定位 */
+      #rightside {
+        right: auto !important;
+        left: 20px !important;
+        display: flex !important;
+        flex-direction: column;
+        transition: all 0.3s ease-in-out !important;
+        z-index: 100000 !important;
+        pointer-events: none !important; 
+      }
+
+      #rightside > div, #rightside button, #rightside i {
+        pointer-events: auto !important;
+        cursor: pointer !important;
+      }
+
+      /* 2. 核心显示/隐藏控制 */
+      #rightside.show-on-left {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: translateX(0) !important;
+      }
+      #rightside:not(.show-on-left) {
+        opacity: 0 !important;
+        visibility: hidden !important;
+        transform: translateX(-80px) !important;
+      }
+
+      /* 3. 层级修正 */
+      #oml2d-stage {
+        pointer-events: none !important;
+        z-index: 9999 !important;
+      }
+
+      /* 降低 canvas 层级，确保它在菜单按钮下面 */
+      #oml-canvas, canvas[id*="oml2d"] {
+        pointer-events: auto !important;
+        z-index: 10 !important; /* 调低这个值 */
+      }
+
+      /* 提高菜单按钮的层级 */
+      .oml2d-menus {
+        z-index: 100002 !important; 
+        pointer-events: auto !important;
+      }
+
+      /* 保持气泡最高 */
       #oml2d-tips {
-        background: rgba(255, 255, 255, 0.85) !important;
-        backdrop-filter: blur(5px) !important;
-        border: 1px solid rgba(255, 182, 193, 0.5) !important;
-        border-radius: 12px !important;
-        padding: 8px 15px !important;
-        color: #ff69b4 !important;
-        font-weight: bold !important;
+        z-index: 100003 !important;
+        pointer-events: none !important; /* 气泡设为不可点击，防止挡住按钮 */
+      }
+
+      /* 4. 气泡样式精修 */
+      #oml2d-tips {
+        background: rgba(255, 255, 255, 0.4) !important; 
+        border: 1px solid rgba(0, 0, 0, 0.2) !important;
+        color: #ef7a82 !important; 
+        font-weight: 700 !important;
+        border-radius: 8px !important; 
+        
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        
+        padding: 5px 12px !important; 
+        font-size: 14px !important;
+        line-height: 1.2 !important; 
+        
+        width: fit-content !important; 
+        height: auto !important;
+        min-height: 30px !important;     
+        min-width: unset !important;
+        max-width: none !important; 
         white-space: nowrap !important;
-        word-break: keep-all !important;
-        width: auto !important;
-        max-width: none !important;
+        
+        position: absolute !important;
+        bottom: unset !important;
+        margin-bottom: unset !important;
         left: 50% !important;
         transform: translateX(-50%) !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
-        z-index: 9999 !important;
+
+        /* --- 关键修改：针对 Q 版模型缩短距离 --- */
+        top: 130px !important; 
+        
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05) !important;
+        box-sizing: border-box !important; 
+        transition: opacity 0.3s ease, top 0.3s ease !important; 
+      }
+
+      #oml2d-tips span, #oml2d-tips div {
+        display: inline-block !important;
+        vertical-align: middle !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: auto !important;
+      }
+      
+      #oml2d-tips, #oml2d-tips * { 
+        text-align: center !important;
       }
     `;
     document.head.appendChild(style);
+
+    // --- 5. 核心显示逻辑：监听滚动条切换 show-on-left 类 ---
+    const handleScrollDisplay = () => {
+      const rs = document.getElementById('rightside');
+      if (!rs) return;
+      // 只要向下滚动超过 100px 就给 show-on-left 类
+      if (window.scrollY > 100) {
+        rs.classList.add('show-on-left');
+      } else {
+        rs.classList.remove('show-on-left');
+      }
+    };
+    window.addEventListener('scroll', handleScrollDisplay);
+    // 初始化执行一次
+    setTimeout(handleScrollDisplay, 500);
+
+    // --- 核心补丁：强力监控 #rightside 的内联样式 ---
+    const targetNode = document.getElementById('rightside');
+    if (targetNode) {
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+            const currentRight = targetNode.style.right;
+            if (currentRight && currentRight !== 'auto') {
+              targetNode.style.setProperty('right', 'auto', 'important');
+              targetNode.style.setProperty('left', '20px', 'important');
+            }
+          }
+        });
+      });
+      observer.observe(targetNode, { attributes: true });
+    }
 
     function hideBubble() {
       const tips = document.querySelector('#oml2d-tips');
@@ -605,10 +720,22 @@ queueMicrotask(() => {
       if (!window.myOmlInstance) {
         window.myOmlInstance = await OML2D.loadOml2d({
           dockedPosition: 'right',
+          // --- 在这里添加 menus 配置 ---
+          menus: {
+            style: {
+              left: '40px',    // 距离看板娘容器左侧的距离
+              top: '190px',   // 距离顶部的距离（建议根据模型高度调整）
+              width: '40px'
+            },
+            itemStyle: {
+              fontSize: '24x' // 图标大小
+            }
+          },
+          // --------------------------
           models: [{
             path: '/live2d_models/maixiaowen/maixiaowen.model3.json',
             scale: 0.08,
-            position: [65, 150],
+            position: [30, 150],
             stageStyle: { width: 300, height: 400 }
           }]
         });
