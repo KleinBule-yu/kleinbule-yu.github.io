@@ -60,7 +60,7 @@
   isHome: false,
   isHighlightShrink: false,
   isToc: false,
-  postUpdate: '2026-03-26 14:13:37',
+  postUpdate: '2026-03-26 14:17:52',
   postMainColor: '',
 }</script><noscript><style type="text/css">
   #nav {
@@ -402,19 +402,21 @@ queueMicrotask(() => {
   }
 })()</script><input type="hidden" name="page-type" id="page-type" value="envelope"></div><script>var visitorMail = "";
 </script><script async data-pjax src="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/waterfall/waterfall.js"></script><script src="https://cdn.cbd.int/qrcodejs@1.0.0/qrcode.min.js"></script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.1.9/icon/ali_iconfont_css.css"><script src="/js/oml2d.js"></script><div style="display:none"><span id="busuanzi_container_site_pv">本站总访问量<span id="busuanzi_value_site_pv"></span>次</span><span id="busuanzi_container_site_uv">本站访客数<span id="busuanzi_value_site_uv"></span>人</span></div><script>
-  var initBusuanziEnglish = function () {
+  var initBusuanziMixed = function () {
     var container = document.querySelector('#post-info .meta-secondline');
     if (container && !document.getElementById('busuanzi-injected')) {
       
-      // 1. 准备统计 HTML (访客 -> Visitors, 总访问 -> Total Views)
+      // 1. 准备统计 HTML (界面显示英文，但 title 属性使用中文)
       var statsHtml = '<span id="busuanzi-injected" style="display:contents">' +
                       '<span class="post-meta-separator">|</span>' +
-                      '<span class="post-meta-item" title="Visitors">' +
+                      // 这里将 title 改为中文
+                      '<span class="post-meta-item" title="访客数">' +
                       '<i class="fa-solid fa-users"></i>' +
                       '<span class="post-meta-label"> Visitors:</span>' +
                       '<span id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></span></span>' +
                       '<span class="post-meta-separator">|</span>' +
-                      '<span class="post-meta-item" title="Total Views">' +
+                      // 这里将 title 改为中文
+                      '<span class="post-meta-item" title="全站总访问量">' +
                       '<i class="fa-solid fa-chart-line"></i>' +
                       '<span class="post-meta-label"> Total Views:</span>' +
                       '<span id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span>' +
@@ -425,8 +427,10 @@ queueMicrotask(() => {
       
       // 3. 插入位置逻辑
       if (postViewItem) {
+        // 插在阅读量后面
         postViewItem.insertAdjacentHTML('afterend', statsHtml);
       } else {
+        // 万一没找到阅读量，就放容器开头
         container.insertAdjacentHTML('afterbegin', statsHtml);
       }
 
@@ -435,10 +439,11 @@ queueMicrotask(() => {
                          container.querySelector('.post-meta-item:has(.fa-map-marker-alt)');
       
       if (locationItem) {
-        // 补全分隔符并移动
+        // 先补全分隔符
         if (locationItem.previousElementSibling && !locationItem.previousElementSibling.classList.contains('post-meta-separator')) {
           locationItem.insertAdjacentHTML('beforebegin', '<span class="post-meta-separator">|</span>');
         }
+        // 把地点节点移动到容器最后
         container.appendChild(locationItem);
       }
 
@@ -449,8 +454,9 @@ queueMicrotask(() => {
     }
   }
 
-  initBusuanziEnglish();
-  document.addEventListener('pjax:complete', initBusuanziEnglish);
+  initBusuanziMixed();
+  // 兼容 Pjax
+  document.addEventListener('pjax:complete', initBusuanziMixed);
 </script>
 <script>
   (function() {
