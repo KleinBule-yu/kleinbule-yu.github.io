@@ -1,37 +1,65 @@
 /* ============================================================
-   1. 大标题适配
+   1. 背景与内容区适配 (包含背景图与透明度)
    ============================================================ */
-#page-header #post-info .post-title, 
-.post-title {
-    color: var(--font-color) !important;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.15) !important;
+body {
+    background-image: url('https://img.131213.xyz/tfile/BQACAgUAAx0Eflp52gABASYMacSf0sVrFihPnKu-kdvrVlh5U_kAAncdAALirClW5ZfRFJr71Kc6BA') !important;
+    background-attachment: fixed !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+#web_bg { display: none !important; }
+
+/* 内容区磨砂玻璃效果 */
+#content-inner, #post, #page {
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+}
+
+[data-theme="dark"] #content-inner, 
+[data-theme="dark"] #post, 
+[data-theme="dark"] #page {
+    background: rgba(24, 24, 24, 0.75) !important;
 }
 
 /* ============================================================
-   2. 元数据适配
+   2. 文章页顶部标题背板 (核心修复点)
    ============================================================ */
-/* 针对所有模式：强制不透明，取消滤镜 */
+#post-info {
+    background: rgba(0, 0, 0, 0.3) !important; /* 加深背板颜色 */
+    padding: 30px !important;
+    border-radius: 15px !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    margin-bottom: 20px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+}
+
+/* 无论白天还是黑夜模式，只要有了背板，文字必须是白色才清晰 */
+#post-info .post-title,
+#post-info .post-meta-date,
 #post-info .post-meta-date time,
 #post-info .anzhiyu-post-location,
 #post-info .post-meta-separator,
-#post-info i,
-#post-info .post-meta-label {
-    color: var(--font-color) !important;
+#post-info .post-meta-label,
+#post-info i {
+    color: #ffffff !important; /* 强制白色 */
     opacity: 1 !important;
-    filter: none !important;
-    -webkit-filter: none !important;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5) !important;
 }
 
-/* 浅色模式补丁：强制纯黑 */
-[data-theme="light"] #post-info .post-meta-date time,
-[data-theme="light"] #post-info .anzhiyu-post-location,
-[data-theme="light"] #post-info i {
-    color: #000000 !important;
+/* ============================================================
+   3. 看板娘交互与层级
+   ============================================================ */
+.oml2d-menus {
+    z-index: 100002 !important;
+    pointer-events: auto !important;
 }
-
-/* 深色模式补丁：强制亮白 */
-[data-theme="dark"] #post-info .post-meta-date time,
-[data-theme="dark"] #post-info .anzhiyu-post-location,
-[data-theme="dark"] #post-info i {
-    color: #ffffff !important;
+#oml2d-tips {
+    z-index: 100001 !important;
 }
