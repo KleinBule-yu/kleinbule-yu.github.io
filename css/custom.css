@@ -1,5 +1,5 @@
 /* ============================================================
-   1. 背景与内容区适配 (包含背景图与透明度)
+   1. 全局背景与核心容器 (极致透明版)
    ============================================================ */
 body {
     background-image: url('https://img.131213.xyz/tfile/BQACAgUAAx0Eflp52gABASYMacSf0sVrFihPnKu-kdvrVlh5U_kAAncdAALirClW5ZfRFJr71Kc6BA') !important;
@@ -11,36 +11,46 @@ body {
 
 #web_bg { display: none !important; }
 
-/* 内容区磨砂玻璃效果 */
-#content-inner, #post, #page {
-    background: rgba(255, 255, 255, 0.85) !important;
-    backdrop-filter: blur(10px);
-    border-radius: 12px;
+/* --- 核心修改：大幅降低透明度至 0.4 或 0.5 --- */
+#content-inner, #post, #page, .aside-list-item, .card-widget {
+    /* 0.5 表示 50% 透明，你可以改成 0.3 会更透 */
+    background: rgba(255, 255, 255, 0.45) !important; 
+    
+    /* 增加模糊度，防止背景图太杂乱影响看字 */
+    backdrop-filter: blur(15px) !important;
+    -webkit-backdrop-filter: blur(15px) !important;
+    
+    border-radius: 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1) !important;
 }
 
+/* 深色模式极致透明适配 */
 [data-theme="dark"] #content-inner, 
 [data-theme="dark"] #post, 
-[data-theme="dark"] #page {
-    background: rgba(24, 24, 24, 0.75) !important;
+[data-theme="dark"] #page,
+[data-theme="dark"] .card-widget {
+    background: rgba(0, 0, 0, 0.4) !important; /* 深色模式下用黑色半透明更高级 */
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
+
+/* --- 补充：如果你希望完全不要白块，只留模糊 --- */
+/* #content-inner {
+    background: transparent !important; 
+} 
+*/
 
 /* ============================================================
-   2. 文章页顶部标题背板 (核心修复点)
+   2. 文章页标题背板 (保持高度清晰)
    ============================================================ */
 #post-info {
-    background: rgba(0, 0, 0, 0.3) !important; /* 加深背板颜色 */
-    padding: 30px !important;
+    background: rgba(0, 0, 0, 0.3) !important; 
+    padding: 25px 15px !important;
     border-radius: 15px !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    margin-bottom: 20px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
+    backdrop-filter: blur(10px) !important;
 }
 
-/* 无论白天还是黑夜模式，只要有了背板，文字必须是白色才清晰 */
+/* 强制背板内文字为白色 */
 #post-info .post-title,
 #post-info .post-meta-date,
 #post-info .post-meta-date time,
@@ -48,18 +58,34 @@ body {
 #post-info .post-meta-separator,
 #post-info .post-meta-label,
 #post-info i {
-    color: #ffffff !important; /* 强制白色 */
+    color: #ffffff !important;
     opacity: 1 !important;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5) !important;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.6) !important;
 }
 
 /* ============================================================
-   3. 看板娘交互与层级
+   3. 看板娘菜单修正 (解决点不到 & 位置偏离)
    ============================================================ */
+/* 提升菜单层级并修正偏移 */
 .oml2d-menus {
-    z-index: 100002 !important;
+    z-index: 100005 !important; /* 确保在最顶层 */
     pointer-events: auto !important;
+    transform: translateX(15px); /* 往右稍微移动一点，靠近人物边缘 */
 }
+
+/* 气泡对话框层级微调 */
 #oml2d-tips {
-    z-index: 100001 !important;
+    z-index: 100004 !important;
+}
+
+/* ============================================================
+   4. 移动端小屏幕补丁
+   ============================================================ */
+@media screen and (max-width: 768px) {
+    #post-info {
+        padding: 15px 10px !important; /* 手机端缩小内边距 */
+    }
+    .oml2d-menus {
+        transform: translateX(5px); /* 手机端偏移减小 */
+    }
 }
