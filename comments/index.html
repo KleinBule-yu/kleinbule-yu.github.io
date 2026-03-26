@@ -60,7 +60,7 @@
   isHome: false,
   isHighlightShrink: false,
   isToc: false,
-  postUpdate: '2026-03-26 12:37:45',
+  postUpdate: '2026-03-26 13:05:11',
   postMainColor: '',
 }</script><noscript><style type="text/css">
   #nav {
@@ -189,7 +189,7 @@
         }
       }
       detectApple()
-    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.1"></head><body data-type="anzhiyu"><div id="web_bg"></div><div id="an_music_bg"></div><div id="loading-box" onclick="document.getElementById(&quot;loading-box&quot;).classList.add(&quot;loaded&quot;)"><div class="loading-bg"><img class="loading-img nolazyload" alt="加载头像" src="https://npm.elemecdn.com/anzhiyu-blog-static@1.0.4/img/avatar.jpg"/><div class="loading-image-dot"></div></div></div><script>const preloader = {
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><meta name="generator" content="Hexo 8.1.1"></head><body data-type="anzhiyu"><div id="web_bg"></div><div id="an_music_bg"></div><div id="loading-box" onclick="document.getElementById(&quot;loading-box&quot;).classList.add(&quot;loaded&quot;)"><div class="loading-bg"><img class="loading-img nolazyload" alt="加载头像" src="https://npm.elemecdn.com/anzhiyu-blog-static@1.0.4/img/avatar.jpg"/><div class="loading-image-dot"></div></div></div><script>const preloader = {
   endLoading: () => {
     document.getElementById('loading-box').classList.add("loaded");
   },
@@ -401,23 +401,40 @@ queueMicrotask(() => {
     window.loadOtherComment = loadGiscus
   }
 })()</script><input type="hidden" name="page-type" id="page-type" value="envelope"></div><script>var visitorMail = "";
-</script><script async data-pjax src="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/waterfall/waterfall.js"></script><script src="https://cdn.cbd.int/qrcodejs@1.0.0/qrcode.min.js"></script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.1.9/icon/ali_iconfont_css.css"><script src="/js/oml2d.js"></script><div style="display:none"><span id="busuanzi_container_site_uv">访客数:<span id="busuanzi_value_site_uv"></span></span><span id="busuanzi_container_site_pv">总访问:<span id="busuanzi_value_site_pv"></span></span></div><script>
+</script><script async data-pjax src="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/waterfall/waterfall.js"></script><script src="https://cdn.cbd.int/qrcodejs@1.0.0/qrcode.min.js"></script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.1.9/icon/ali_iconfont_css.css"><script src="/js/oml2d.js"></script><div style="display:none"><span id="busuanzi_container_site_pv">本站总访问量<span id="busuanzi_value_site_pv"></span>次</span><span id="busuanzi_container_site_uv">本站访客数<span id="busuanzi_value_site_uv"></span>人</span></div><script>
   (function() {
     var checkBusuanzi = setInterval(function() {
-      var postMeta = document.querySelector('#post-info .post-meta');
+      // 安知鱼/Butterfly 标题下的元数据容器通常是 .meta-firstline 或 .post-meta
+      var postMeta = document.querySelector('.meta-firstline') || document.querySelector('.post-meta');
+      
+      // 只有当找到了位置，且还没注入过时才执行
       if (postMeta && !document.getElementById('injected-busuanzi')) {
         var busuanziHTML = `
-          <span id="injected-busuanzi" class="busuanzi-item">
-            <i class="fa-solid fa-users"></i>访客: <span id="busuanzi_value_site_uv">--</span>
+          <span id="injected-busuanzi" class="post-meta-separator">|</span>
+          <span class="post-meta-item busuanzi-item">
+            <i class="fa-solid fa-users" style="font-size: 12px; margin-right: 4px;"></i>
+            <span class="post-meta-label">访客:</span>
+            <span id="busuanzi_value_site_uv">--</span>
           </span>
-          <span class="busuanzi-item">
-            <i class="fa-solid fa-chart-line"></i>总访问: <span id="busuanzi_value_site_pv">--</span>
+          <span class="post-meta-separator">|</span>
+          <span class="post-meta-item busuanzi-item">
+            <i class="fa-solid fa-chart-line" style="font-size: 12px; margin-right: 4px;"></i>
+            <span class="post-meta-label">总访问:</span>
+            <span id="busuanzi_value_site_pv">--</span>
           </span>`;
+        
+        // 插入到容器最后面
         postMeta.insertAdjacentHTML('beforeend', busuanziHTML);
-        if (typeof bszTag !== 'undefined') bszTag.fetch();
+        
+        // 尝试兼容 Pjax 切换页面后的数据刷新
+        if (typeof bszTag !== 'undefined' && bszTag.fetch) bszTag.fetch();
+        
         clearInterval(checkBusuanzi);
       }
     }, 500);
+    
+    // 8秒后自动停止尝试，防止浪费性能
+    setTimeout(function() { clearInterval(checkBusuanzi); }, 8000);
   })();
 </script>
 <script>
