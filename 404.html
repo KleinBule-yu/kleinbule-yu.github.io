@@ -60,7 +60,7 @@
   isHome: false,
   isHighlightShrink: false,
   isToc: false,
-  postUpdate: '2026-03-26 13:40:47',
+  postUpdate: '2026-03-26 13:45:19',
   postMainColor: '',
 }</script><noscript><style type="text/css">
   #nav {
@@ -277,14 +277,15 @@ queueMicrotask(() => {
   );
 });</script><script async src="/anzhiyu/random.js"></script><div class="js-pjax"><input type="hidden" name="page-type" id="page-type" value="404"></div><script>var visitorMail = "";
 </script><script async data-pjax src="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/waterfall/waterfall.js"></script><script src="https://cdn.cbd.int/qrcodejs@1.0.0/qrcode.min.js"></script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.1.9/icon/ali_iconfont_css.css"><script src="/js/oml2d.js"></script><div style="display:none"><span id="busuanzi_container_site_pv">本站总访问量<span id="busuanzi_value_site_pv"></span>次</span><span id="busuanzi_container_site_uv">本站访客数<span id="busuanzi_value_site_uv"></span>人</span></div><script>
-  function initBusuanziPreciseLayout() {
+  function initBusuanziLayout() {
     var count = 0;
     var checkBusuanzi = setInterval(function() {
-      // 1. 找到“地点”标签 (通常类名包含 fa-map-marker-alt 或类似，这里锁定其父级 item)
-      var locationItem = document.querySelector('.meta-secondline .fa-map-marker-alt')?.closest('.post-meta-item') || 
-                         document.querySelector('.meta-secondline .fa-location-dot')?.closest('.post-meta-item');
+      // 1. 找到第二行容器
+      var metaLine = document.querySelector('.meta-secondline');
+      // 2. 找到阅读量（Post View）那个块
+      var postViewItem = document.querySelector('.meta-secondline .post-meta-item:first-child');
       
-      if (locationItem && !document.getElementById('injected-busuanzi')) {
+      if (metaLine && postViewItem && !document.getElementById('injected-busuanzi')) {
         var busuanziHTML = `
           <span id="injected-busuanzi" style="display: contents;">
             <span class="post-meta-separator">|</span>
@@ -299,11 +300,10 @@ queueMicrotask(() => {
               <span class="post-meta-label">总访问:</span>
               <span id="busuanzi_value_site_pv">--</span>
             </span>
-            <span class="post-meta-separator">|</span>
           </span>`;
         
-        // 关键点：使用 insertAdjacentHTML 插入到“地点”的前面 (beforebegin)
-        locationItem.insertAdjacentHTML('beforebegin', busuanziHTML);
+        // 关键：插在“阅读量”项的后面 (afterend)
+        postViewItem.insertAdjacentHTML('afterend', busuanziHTML);
         
         if (window.bszTag && window.bszTag.fetch) {
           window.bszTag.fetch();
@@ -314,8 +314,8 @@ queueMicrotask(() => {
     }, 300);
   }
 
-  initBusuanziPreciseLayout();
-  document.addEventListener('pjax:complete', initBusuanziPreciseLayout);
+  initBusuanziLayout();
+  document.addEventListener('pjax:complete', initBusuanziLayout);
 </script>
 <script>
   (function() {
