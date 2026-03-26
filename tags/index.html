@@ -282,21 +282,23 @@ queueMicrotask(() => {
   );
 });</script><script async src="/anzhiyu/random.js"></script><div class="js-pjax"><input type="hidden" name="page-type" id="page-type" value="tags"></div><script>var visitorMail = "";
 </script><script async data-pjax src="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/waterfall/waterfall.js"></script><script src="https://cdn.cbd.int/qrcodejs@1.0.0/qrcode.min.js"></script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.1.9/icon/ali_iconfont_css.css"><script src="/js/oml2d.js"></script><div style="display:none"><span id="busuanzi_container_site_uv">访客数:<span id="busuanzi_value_site_uv"></span></span><span id="busuanzi_container_site_pv">总访问:<span id="busuanzi_value_site_pv"></span></span></div><script>
-  // 这是一个“暴力”脚本，强行把全站统计塞进红框位置
-  var checkExist = setInterval(function() {
-    var postMeta = document.querySelector('#post-info .post-meta');
-    if (postMeta && !document.getElementById('injected-busuanzi')) {
-      var busuanziHTML = `
-        <span id="injected-busuanzi" class="busuanzi-item">
-          <i class="fa-solid fa-users"></i>访客: <span id="busuanzi_value_site_uv">--</span>
-        </span>
-        <span class="busuanzi-item">
-          <i class="fa-solid fa-chart-line"></i>总访问: <span id="busuanzi_value_site_pv">--</span>
-        </span>`;
-      postMeta.insertAdjacentHTML('beforeend', busuanziHTML);
-      clearInterval(checkExist);
-    }
-  }, 500);
+  (function() {
+    var checkBusuanzi = setInterval(function() {
+      var postMeta = document.querySelector('#post-info .post-meta');
+      if (postMeta && !document.getElementById('injected-busuanzi')) {
+        var busuanziHTML = `
+          <span id="injected-busuanzi" class="busuanzi-item">
+            <i class="fa-solid fa-users"></i>访客: <span id="busuanzi_value_site_uv">--</span>
+          </span>
+          <span class="busuanzi-item">
+            <i class="fa-solid fa-chart-line"></i>总访问: <span id="busuanzi_value_site_pv">--</span>
+          </span>`;
+        postMeta.insertAdjacentHTML('beforeend', busuanziHTML);
+        if (typeof bszTag !== 'undefined') bszTag.fetch();
+        clearInterval(checkBusuanzi);
+      }
+    }, 500);
+  })();
 </script>
 <script>
   (function() {
