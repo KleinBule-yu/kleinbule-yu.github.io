@@ -285,7 +285,15 @@ queueMicrotask(() => {
   var initBusuanziFinal = function () {
     var container = document.querySelector('#post-info .meta-secondline');
     if (container && !document.getElementById('busuanzi-injected')) {
-      // 1. 准备统计 HTML
+      
+      // 1. 【新增：把 Post View 改为 阅读量】
+      var postViewItem = container.querySelector('.post-meta-item');
+      if (postViewItem && postViewItem.innerText.includes('Post View')) {
+        // 替换内部文字，同时保留图标
+        postViewItem.innerHTML = postViewItem.innerHTML.replace('Post View', '阅读量');
+      }
+
+      // 2. 准备统计 HTML
       var statsHtml = '<span id="busuanzi-injected" style="display:contents">' +
                       '<span class="post-meta-separator">|</span>' +
                       '<span class="post-meta-item" title="访客数">' +
@@ -299,27 +307,23 @@ queueMicrotask(() => {
                       '<span id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span>' +
                       '</span>';
       
-      // 2. 寻找第一个节点（阅读量）
-      var firstItem = container.querySelector('.post-meta-item');
-      if (firstItem) {
-        firstItem.insertAdjacentHTML('afterend', statsHtml);
+      // 3. 在第一个节点（现在的阅读量）后面插入
+      if (postViewItem) {
+        postViewItem.insertAdjacentHTML('afterend', statsHtml);
       } else {
         container.insertAdjacentHTML('afterbegin', statsHtml);
       }
 
-      // 3. 【关键：强制移动地点到最后】
-      // 寻找带有位置图标的节点
+      // 4. 强制移动地点到最后
       var locationItem = container.querySelector('.post-meta-item:has(.fa-location-dot)') || 
                          container.querySelector('.post-meta-item:has(.fa-map-marker-alt)');
       
       if (locationItem) {
-        // 先加一个分隔符
         locationItem.insertAdjacentHTML('beforebegin', '<span class="post-meta-separator">|</span>');
-        // 把地点节点剪切并追加到容器最后
         container.appendChild(locationItem);
       }
 
-      // 4. 刷新数字
+      // 5. 刷新数字
       if (typeof bszTag !== 'undefined' && bszTag.fetch) {
         bszTag.fetch();
       }
