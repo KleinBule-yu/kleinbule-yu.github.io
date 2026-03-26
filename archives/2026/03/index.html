@@ -60,7 +60,7 @@
   isHome: false,
   isHighlightShrink: false,
   isToc: false,
-  postUpdate: '2026-03-26 13:13:59',
+  postUpdate: '2026-03-26 13:18:27',
   postMainColor: '',
 }</script><noscript><style type="text/css">
   #nav {
@@ -277,32 +277,41 @@ queueMicrotask(() => {
   );
 });</script><script async src="/anzhiyu/random.js"></script><div class="js-pjax"><input type="hidden" name="page-type" id="page-type" value="anzhiyu"></div><script>var visitorMail = "";
 </script><script async data-pjax src="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/waterfall/waterfall.js"></script><script src="https://cdn.cbd.int/qrcodejs@1.0.0/qrcode.min.js"></script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.1.9/icon/ali_iconfont_css.css"><script src="/js/oml2d.js"></script><div style="display:none"><span id="busuanzi_container_site_pv">本站总访问量<span id="busuanzi_value_site_pv"></span>次</span><span id="busuanzi_container_site_uv">本站访客数<span id="busuanzi_value_site_uv"></span>人</span></div><script>
-  function initBusuanzi() {
+  function initBusuanziInject() {
+    // 增加一个重试机制，确保不蒜子 JS 已加载
+    var count = 0;
     var checkBusuanzi = setInterval(function() {
-      // 改为注入到文章信息的第一行末尾
       var postMeta = document.querySelector('.meta-firstline');
       if (postMeta && !document.getElementById('injected-busuanzi')) {
         var busuanziHTML = `
           <span id="injected-busuanzi" class="post-meta-separator">|</span>
           <span class="post-meta-item">
-            <i class="fa-solid fa-users"></i> 访客: <span id="busuanzi_value_site_uv">--</span>
+            <i class="fa-solid fa-users" style="margin-right: 4px;"></i>
+            <span>访客:</span><span id="busuanzi_value_site_uv">--</span>
           </span>
           <span class="post-meta-separator">|</span>
           <span class="post-meta-item">
-            <i class="fa-solid fa-chart-line"></i> 总访问: <span id="busuanzi_value_site_pv">--</span>
+            <i class="fa-solid fa-chart-line" style="margin-right: 4px;"></i>
+            <span>总访问:</span><span id="busuanzi_value_site_pv">--</span>
           </span>`;
         postMeta.insertAdjacentHTML('beforeend', busuanziHTML);
-        // 关键：手动触发不蒜子重算
-        if (typeof bszTag !== 'undefined') bszTag.fetch();
+        
+        // 关键：如果页面已经加载过不蒜子，需要手动通知它刷新数字
+        if (window.bszTag && window.bszTag.fetch) {
+          window.bszTag.fetch();
+        }
         clearInterval(checkBusuanzi);
       }
+      if (++count > 10) clearInterval(checkBusuanzi); // 5秒后停止尝试
     }, 500);
-    setTimeout(function() { clearInterval(checkBusuanzi); }, 5000);
   }
 
-  // 兼容普通加载和 Pjax 切换
-  initBusuanzi();
-  document.addEventListener('pjax:complete', initBusuanzi);
+  // 首次进入页面执行
+  initBusuanziInject();
+  // 监听安知鱼/Butterfly 的 Pjax 切换事件
+  document.addEventListener('pjax:complete', function() {
+    initBusuanziInject();
+  });
 </script>
 <script>
   (function() {
