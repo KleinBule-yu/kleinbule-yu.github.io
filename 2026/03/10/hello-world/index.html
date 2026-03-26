@@ -349,14 +349,19 @@ queueMicrotask(() => {
     var container = document.querySelector('#post-info .meta-secondline');
     if (container && !document.getElementById('busuanzi-injected')) {
       
-      // 1. 【新增：把 Post View 改为 阅读量】
-      var postViewItem = container.querySelector('.post-meta-item');
-      if (postViewItem && postViewItem.innerText.includes('Post View')) {
-        // 替换内部文字，同时保留图标
-        postViewItem.innerHTML = postViewItem.innerHTML.replace('Post View', '阅读量');
-      }
+      // 1. 定位阅读量节点并强制改名
+      var items = container.querySelectorAll('.post-meta-item');
+      var postViewItem = null;
+      
+      items.forEach(function(item) {
+        if (item.innerText.includes('Post View') || item.innerText.includes('阅读量')) {
+          postViewItem = item;
+          // 立即改名
+          item.innerHTML = item.innerHTML.replace('Post View', '阅读量');
+        }
+      });
 
-      // 2. 准备统计 HTML
+      // 2. 准备要插入的 HTML
       var statsHtml = '<span id="busuanzi-injected" style="display:contents">' +
                       '<span class="post-meta-separator">|</span>' +
                       '<span class="post-meta-item" title="访客数">' +
@@ -370,7 +375,7 @@ queueMicrotask(() => {
                       '<span id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span>' +
                       '</span>';
       
-      // 3. 在第一个节点（现在的阅读量）后面插入
+      // 3. 插入位置逻辑
       if (postViewItem) {
         postViewItem.insertAdjacentHTML('afterend', statsHtml);
       } else {
@@ -382,11 +387,26 @@ queueMicrotask(() => {
                          container.querySelector('.post-meta-item:has(.fa-map-marker-alt)');
       
       if (locationItem) {
-        locationItem.insertAdjacentHTML('beforebegin', '<span class="post-meta-separator">|</span>');
+        // 检查是否已有分隔符，没有则补一个
+        if (locationItem.previousElementSibling && !locationItem.previousElementSibling.classList.contains('post-meta-separator')) {
+          locationItem.insertAdjacentHTML('beforebegin', '<span class="post-meta-separator">|</span>');
+        }
         container.appendChild(locationItem);
       }
 
-      // 5. 刷新数字
+      // 5. 【防止反弹】开启监听器，如果文字变回英文就改掉它
+      var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          if (postViewItem && postViewItem.innerText.includes('Post View')) {
+            postViewItem.innerHTML = postViewItem.innerHTML.replace('Post View', '阅读量');
+          }
+        });
+      });
+      if (postViewItem) {
+        observer.observe(postViewItem, { childList: true, characterData: true, subtree: true });
+      }
+
+      // 6. 刷新数字
       if (typeof bszTag !== 'undefined' && bszTag.fetch) {
         bszTag.fetch();
       }
