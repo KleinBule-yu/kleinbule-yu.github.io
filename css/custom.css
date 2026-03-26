@@ -89,3 +89,64 @@ body {
         transform: translateX(5px); /* 手机端偏移减小 */
     }
 }
+
+/* ============================================================
+   4. 文章元数据（访客/阅读量）位置优化
+   ============================================================ */
+/* 让元数据栏变成横向平铺，并垂直居中对齐 */
+#post-info .post-meta {
+    display: flex !important;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 12px; /* 每个项目之间的间距 */
+}
+
+/* 针对不蒜子统计文字的颜色适配 */
+#busuanzi_container_page_pv,
+#busuanzi_container_site_uv,
+#busuanzi_container_site_pv {
+    color: #ffffff !important;
+    font-size: 14px !important;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5) !important;
+}
+
+/* 给阅读次数加一个图标（可选，增加美观度） */
+#busuanzi_container_page_pv::before {
+    content: '\f06e'; /* FontAwesome 的眼睛图标 */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    margin-right: 5px;
+}
+
+/* 隐藏原本冗余的分割线，让布局更干净 */
+.post-meta-separator {
+    display: none !important;
+}
+
+/* ============================================================
+   5. 强制显示全站访客与总访问量 (追加)
+   ============================================================ */
+/* 让原本隐藏的统计容器显示出来 */
+#busuanzi_container_site_uv, 
+#busuanzi_container_site_pv {
+    display: inline-block !important; /* 强制显示 */
+    color: #ffffff !important;
+    font-size: 14px !important;
+}
+
+/* 给“总访客”加个小人图标 */
+#busuanzi_container_site_uv::before {
+    content: '\f0c0'; 
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    margin-right: 5px;
+}
+
+/* 给“总访问量”加个折线图图标 */
+#busuanzi_container_site_pv::before {
+    content: '\f201'; 
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    margin-right: 5px;
+}
