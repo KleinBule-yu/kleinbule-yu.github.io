@@ -429,12 +429,12 @@ queueMicrotask(() => {
   function initBusuanziLayout() {
     var count = 0;
     var checkBusuanzi = setInterval(function() {
-      // 1. 找到第二行容器
-      var metaLine = document.querySelector('.meta-secondline');
-      // 2. 找到阅读量（Post View）那个块
+      // 1. 定位第二行容器和阅读量块
+      var metaSecond = document.querySelector('.meta-secondline');
       var postViewItem = document.querySelector('.meta-secondline .post-meta-item:first-child');
       
-      if (metaLine && postViewItem && !document.getElementById('injected-busuanzi')) {
+      // 2. 确保容器存在且未注入过
+      if (metaSecond && postViewItem && !document.getElementById('injected-busuanzi')) {
         var busuanziHTML = `
           <span id="injected-busuanzi" style="display: contents;">
             <span class="post-meta-separator">|</span>
@@ -451,18 +451,25 @@ queueMicrotask(() => {
             </span>
           </span>`;
         
-        // 关键：插在“阅读量”项的后面 (afterend)
+        // 3. 将统计数据精准插在“阅读量”项的后面
         postViewItem.insertAdjacentHTML('afterend', busuanziHTML);
         
+        // 4. 强制通知不蒜子库抓取新注入的 ID 并填充数字
         if (window.bszTag && window.bszTag.fetch) {
           window.bszTag.fetch();
+        } else {
+          // 如果 fetch 不存在，尝试通过重新加载脚本触发
+          var script = document.createElement('script');
+          script.src = '//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+          document.body.appendChild(script);
         }
         clearInterval(checkBusuanzi);
       }
-      if (++count > 20) clearInterval(checkBusuanzi);
+      if (++count > 25) clearInterval(checkBusuanzi);
     }, 300);
   }
 
+  // 兼容普通加载和 Pjax 无刷新跳转
   initBusuanziLayout();
   document.addEventListener('pjax:complete', initBusuanziLayout);
 </script>
